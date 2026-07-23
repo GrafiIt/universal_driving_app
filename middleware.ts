@@ -4,7 +4,7 @@ import { getCookieDomain } from "@/utils/supabase/cookie-domain"
 
 // ── 통합 인증/구독 시스템 상수 ──────────────────────────────
 /** 현재 SaaS 프로그램의 고유 서비스명 (DB 저장 키값) */
-const PROGRAM_ID = "kukdongdriver"
+const PROGRAM_ID = "DailyDrivingCheck"
 /** 통합 결제 사이트 로그인 주소 */
 const LOGIN_URL = "https://payment.1004.help/auth/login"
 /** 통합 결제 사이트 구독 관리 주소 */
