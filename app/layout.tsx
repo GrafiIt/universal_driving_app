@@ -11,14 +11,14 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: '극동운전자앱',
+  title: '운수종사자 일상 점검',
   description: '운전자 운행 관리 및 일일점검 시스템',
   generator: 'v0.app',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: '극동운전자앱',
+    title: '운수종사자 일상 점검',
   },
   icons: {
     icon: '/favicon.png',

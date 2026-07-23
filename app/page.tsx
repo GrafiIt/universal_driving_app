@@ -5,11 +5,11 @@ import { Smartphone } from 'lucide-react'
 export default function LandingPage() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center bg-white px-6 pb-28 pt-12">
-      {/* 최상단: 극동로지텍 CI 로고 */}
+      {/* 최상단: 운수종사자 일상 점검 로고 */}
       <header className="flex w-full justify-center">
         <Image
-          src="/logo-ci.png"
-          alt="극동로지텍 CI 로고"
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%89%E1%85%AE%E1%84%8C%E1%85%A9%E1%86%BC%E1%84%89%E1%85%A1%E1%84%8C%E1%85%A1_%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%8C%E1%85%A5%E1%86%B7%E1%84%80%E1%85%A5%E1%86%B7_%E1%84%91%E1%85%A1%E1%84%87%E1%85%B5%E1%84%8F%E1%85%A9%E1%86%AB-xlKIl8cHfJcqJBJpf7zIuwZwuEKoWn.png"
+          alt="운수종사자 일상 점검 로고"
           width={200}
           height={64}
           priority
@@ -21,9 +21,9 @@ export default function LandingPage() {
       <div className="flex flex-1 flex-col items-center justify-center gap-10 text-center">
         {/* 중앙 상단: 타이틀 */}
         <h1 className="text-balance text-3xl font-bold leading-snug text-gray-900 sm:text-4xl">
-          극동로지텍
+          운수종사자
           <br />
-          운행 전 일일체크리스트
+          일상 점검
         </h1>
 
         {/* 중앙 하단: 휴대폰 설치 안내 */}
