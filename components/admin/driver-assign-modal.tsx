@@ -15,7 +15,7 @@ interface DriverUser {
   user_email: string
 }
 
-const USERS_ENDPOINT = 'https://payment.1004.help/api/v1/users?company=kukdong'
+const USERS_ENDPOINT = 'https://payment.1004.help/api/v1/users?company=DailyDrivingCheck'
 
 interface DriverAssignModalProps {
   vehicle: VehicleRow

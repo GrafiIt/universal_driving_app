@@ -45,7 +45,7 @@ export default function ChecklistPage() {
         // 2) 사용자 등급 조회
         let userLevel: number | null = null
         try {
-          const res = await fetch('/api/v1/users/me?company=kukdong')
+          const res = await fetch('/api/v1/users/me?company=DailyDrivingCheck')
           if (res.ok) {
             const json = await res.json()
             userLevel = typeof json.user_level === 'number' ? json.user_level : Number(json.user_level)
