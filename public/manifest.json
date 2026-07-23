@@ -1,7 +1,7 @@
 {
-  "name": "극동운전자앱",
-  "short_name": "극동운전자앱",
-  "description": "운전자 운행 관리 및 일일점검 시스템",
+  "name": "운전자일상점검",
+  "short_name": "운전자일상점검",
+  "description": "자동으로 운수종사자 일상점검표 작성",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
