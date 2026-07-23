@@ -241,8 +241,8 @@ export function AdminEditModal({ row, onClose, onSaved }: AdminEditModalProps) {
               const it = items.find((x) => x.item_id === def.id)
               if (!it) return null
 
-              const normalLabel = def.customLabels?.[0] ?? '정상'
-              const abnormalLabel = def.customLabels?.[1] ?? '이상'
+              const normalLabel = def.customLabels?.[0] ?? '양호'
+              const abnormalLabel = def.customLabels?.[1] ?? '불량'
               const isSignature = def.type === 'signature'
               const isNormal = it.status === 'normal'
 

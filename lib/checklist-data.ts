@@ -144,6 +144,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     order: 1,
     label: '불량상태 조치(개선) 여부',
     type: 'binary',
+    customLabels: ['없음', '있음'],
   },
   {
     id: 's2',

@@ -192,15 +192,15 @@ export function InspectionTable() {
           return hasImages ? '서명완료' : '-'
         }
 
-        // 정상 계열
+        // 양호 계열
         if (status === 'normal') {
-          const label = item.customLabels?.[0] ?? '정상'
+          const label = item.customLabels?.[0] ?? '양호'
           return hasImages ? `${label}(사진)` : label
         }
 
-        // 이상 계열
+        // 불량 계열
         if (status === 'abnormal') {
-          const label = item.customLabels?.[1] ?? '이상'
+          const label = item.customLabels?.[1] ?? '불량'
           const note = it.note?.trim()
           const extras: string[] = []
           if (note) extras.push(`사유: ${note}`)
@@ -555,8 +555,8 @@ export function InspectionTable() {
                         : 'border-r border-slate-200'
 
                       // DB status값은 그대로 두고, 화면 표시 텍스트만 customLabels로 매핑
-                      const normalLabel = item.customLabels?.[0] ?? '정상'
-                      const abnormalLabel = item.customLabels?.[1] ?? '이상'
+                const normalLabel = item.customLabels?.[0] ?? '양호'
+                const abnormalLabel = item.customLabels?.[1] ?? '불량'
 
                       // 서명 항목: image_urls의 서명 이미지를 작은 썸네일로 직접 렌더링
                       if (item.type === 'signature') {
