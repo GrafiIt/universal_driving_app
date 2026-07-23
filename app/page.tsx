@@ -26,20 +26,24 @@ export default function LandingPage() {
         return
       }
 
-      // 2. 유저 등급 확인 (미들웨어 주입 헤더 API 호출)
+      // 2. 유저 등급 및 역할 확인 (미들웨어 주입 헤더 API 호출)
       let userLevel: number | null = null
+      let userRole: string | null = null
       try {
         const res = await fetch('/api/v1/users/me')
         if (res.ok) {
           const json = await res.json()
           userLevel = json.userLevel ? Number(json.userLevel) : null
+          userRole = json.userRole ?? null
         }
       } catch (e) {
-        console.error('[DEBUG] 유저 등급 조회 실패:', e)
+        console.error('[DEBUG] 유저 등급/역할 조회 실패:', e)
       }
 
-      // 3. 관리자(1, 2등급) 예외 통과 로직 - 차량 배정 무관하게 체크리스트 진입
-      if (userLevel === 1 || userLevel === 2) {
+      // 3. 관리자(admin 역할 또는 1·2등급) 예외 통과 로직 - 차량 배정 무관하게 체크리스트 진입
+      const isManager = userRole === 'admin' || userLevel === 1 || userLevel === 2
+      if (isManager) {
+        console.log('[DEBUG] 관리자/운영자 계정 확인 -> /checklist 진입')
         router.push('/checklist')
         return
       }

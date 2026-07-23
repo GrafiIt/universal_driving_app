@@ -176,6 +176,7 @@ export async function middleware(request: NextRequest) {
     encodeURIComponent(verifyData.company?.name ?? ""),
   )
   requestHeaders.set("X-Company-Code", verifyData.company?.code ?? "")
+  requestHeaders.set("X-User-Role", (verifyData.user as { role?: string } | null)?.role ?? "")
 
   const response = NextResponse.next({ request: { headers: requestHeaders } })
 

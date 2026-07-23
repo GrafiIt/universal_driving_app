@@ -42,16 +42,18 @@ export default function ChecklistPage() {
           return
         }
 
-        // 2) 사용자 등급 조회
+        // 2) 사용자 등급 및 역할 조회
         let userLevel: number | null = null
+        let userRole: string | null = null
         try {
-          const res = await fetch('/api/v1/users/me?company=DailyDrivingCheck')
+          const res = await fetch('/api/v1/users/me')
           if (res.ok) {
             const json = await res.json()
-            userLevel = typeof json.user_level === 'number' ? json.user_level : Number(json.user_level)
+            userLevel = json.userLevel ? Number(json.userLevel) : null
+            userRole = json.userRole ?? null
           }
         } catch {
-          // 등급 조회 실패는 일반 사용자로 간주
+          // 조회 실패는 일반 사용자로 간주
         }
 
         if (!cancelled) setUserLevel(userLevel)
@@ -77,10 +79,11 @@ export default function ChecklistPage() {
           '사용자'
 
         // ── 핵심 로직 분기 ──
-        if (userLevel === 1 || userLevel === 2) {
-          // 관리자: 매칭 없어도 무조건 통과
+        const isManager = userRole === 'admin' || userLevel === 1 || userLevel === 2
+        if (isManager) {
+          // 관리자/운영자: 차량 매칭 없어도 무조건 통과
           setDriverName(vehicle?.driver_name ?? fallbackName)
-          setVehicleNumber('관리자')
+          setVehicleNumber(vehicle?.vehicle_number ?? '관리자')
           setIsInitializing(false)
           return
         }

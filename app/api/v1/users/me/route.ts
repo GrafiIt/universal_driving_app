@@ -17,6 +17,7 @@ export async function OPTIONS() {
 export async function GET() {
   const headersList = await headers()
   const userLevel = headersList.get('X-User-Level')
+  const userRole = headersList.get('X-User-Role')
   const companyNameRaw = headersList.get('X-Company-Name')
   const companyCode = headersList.get('X-Company-Code')
 
@@ -32,6 +33,7 @@ export async function GET() {
   return NextResponse.json(
     {
       userLevel: userLevel && userLevel !== '' ? Number(userLevel) : null,
+      userRole: userRole || null,
       companyName: companyName || null,
       companyCode: companyCode || null,
     },
