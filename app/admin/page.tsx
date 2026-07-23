@@ -38,6 +38,7 @@ export default function AdminPage() {
 
         if (res.ok) {
           const json = await res.json()
+          console.log('[DEBUG AdminPage] users/me 응답:', json)
           const userLevel = json.userLevel ? Number(json.userLevel) : null
           const userRole = json.userRole
 

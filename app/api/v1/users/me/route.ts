@@ -30,10 +30,15 @@ export async function GET() {
     }
   }
 
+  const parsedUserLevel = userLevel && userLevel !== '' ? Number(userLevel) : null
+  const parsedUserRole = userRole || null
+
   return NextResponse.json(
     {
-      userLevel: userLevel && userLevel !== '' ? Number(userLevel) : null,
-      userRole: userRole || null,
+      userLevel: parsedUserLevel,
+      user_level: parsedUserLevel,
+      userRole: parsedUserRole,
+      user_role: parsedUserRole,
       companyName: companyName || null,
       companyCode: companyCode || null,
     },
