@@ -17,9 +17,8 @@ export default function LandingPage() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
 
-      // 1. 미로그인 상태 처리
+      // 1. 미로그인 처리
       if (!session) {
-        console.log('[DEBUG] 세션 없음 -> 로그인 페이지로 이동')
         const currentUrl = window.location.href
         const loginUrl = new URL('https://payment.1004.help/auth/login')
         loginUrl.searchParams.set('next', currentUrl)
@@ -27,9 +26,25 @@ export default function LandingPage() {
         return
       }
 
-      console.log('[DEBUG] 로그인 세션 확인됨:', session.user.id, session.user.email)
+      // 2. 유저 등급 확인 (미들웨어 주입 헤더 API 호출)
+      let userLevel: number | null = null
+      try {
+        const res = await fetch('/api/v1/users/me')
+        if (res.ok) {
+          const json = await res.json()
+          userLevel = json.userLevel ? Number(json.userLevel) : null
+        }
+      } catch (e) {
+        console.error('[DEBUG] 유저 등급 조회 실패:', e)
+      }
 
-      // 2. 차량 배정 여부 조회 (ID 또는 이메일 매칭)
+      // 3. 관리자(1, 2등급) 예외 통과 로직 - 차량 배정 무관하게 체크리스트 진입
+      if (userLevel === 1 || userLevel === 2) {
+        router.push('/checklist')
+        return
+      }
+
+      // 4. 일반 사용자 차량 배정 여부 조회
       const { data, error } = await supabase
         .schema('driver-checklist')
         .from('universal_driving_check_vehicles')
@@ -41,19 +56,13 @@ export default function LandingPage() {
         console.error('[DEBUG] 차량 조회 오류:', error)
       }
 
-      console.log('[DEBUG] 조회된 차량 데이터:', data)
-
-      // 3. 차량 배정 결과에 따른 라우팅
       if (!data) {
-        console.log('[DEBUG] 배정된 차량 없음 -> /unassigned 로 이동')
         router.push('/unassigned')
       } else {
-        console.log('[DEBUG] 배정된 차량 있음 -> /checklist 로 이동')
         router.push('/checklist')
       }
     } catch (err) {
       console.error('[DEBUG] handleStart 예외 발생:', err)
-      // 예외 발생 시 안전하게 로그인 페이지로 안내
       const currentUrl = window.location.href
       const loginUrl = new URL('https://payment.1004.help/auth/login')
       loginUrl.searchParams.set('next', currentUrl)
