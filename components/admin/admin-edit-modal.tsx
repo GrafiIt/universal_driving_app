@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { CHECKLIST_ITEMS } from '@/lib/checklist-data'
 import { compressImage, dataUrlToBlob } from '@/lib/compress-image'
 
-const STORAGE_BUCKET = 'kukdong-driver-inspection-images'
+const STORAGE_BUCKET = 'universal-driving-check-images'
 const ORDERED_ITEMS = CHECKLIST_ITEMS
 
 // ─────────────────────────────────────────
@@ -25,7 +25,7 @@ export interface InspectionRow {
   vehicle_number: string | null
   inspected_at: string
   admin_note?: string | null
-  kukdong_driver_inspection_items: InspectionItemRow[]
+  universal_driving_check_inspection_items: InspectionItemRow[]
 }
 
 interface AdminEditModalProps {
@@ -51,7 +51,7 @@ export function AdminEditModal({ row, onClose, onSaved }: AdminEditModalProps) {
   // 항목별 편집 상태 초기화 (CHECKLIST_ITEMS 순서 기준)
   const [items, setItems] = useState<EditableItem[]>(() => {
     const map = new Map<string, InspectionItemRow>()
-    ;(row.kukdong_driver_inspection_items ?? []).forEach((it) => map.set(it.item_id, it))
+    ;(row.universal_driving_check_inspection_items ?? []).forEach((it) => map.set(it.item_id, it))
     return ORDERED_ITEMS.map((def) => {
       const it = map.get(def.id)
       return {
@@ -176,7 +176,7 @@ export function AdminEditModal({ row, onClose, onSaved }: AdminEditModalProps) {
 
         const { error: updateError } = await supabase
           .schema('driver-checklist')
-          .from('kukdong_driver_inspection_items')
+          .from('universal_driving_check_inspection_items')
           .update({
             status: it.status,
             note: it.note.trim() === '' ? null : it.note.trim(),

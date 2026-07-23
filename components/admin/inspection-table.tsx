@@ -25,7 +25,7 @@ interface InspectionRow {
   vehicle_number: string | null
   inspected_at: string
   admin_note?: string | null
-  kukdong_driver_inspection_items: InspectionItemRow[]
+  universal_driving_check_inspection_items: InspectionItemRow[]
 }
 
 // ─────────────────────────────────────────
@@ -59,9 +59,9 @@ async function fetchInspections(
 
   let query = supabase
     .schema('driver-checklist')
-    .from('kukdong_driver_inspections')
+    .from('universal_driving_check_inspections')
     .select(
-      'id, driver_name, vehicle_number, inspected_at, admin_note, kukdong_driver_inspection_items(item_id, status, note, image_urls)',
+      'id, driver_name, vehicle_number, inspected_at, admin_note, universal_driving_check_inspection_items(item_id, status, note, image_urls)',
     )
     .gte('inspected_at', fromDate)
     .lt('inspected_at', toDateExclusive)
@@ -173,7 +173,7 @@ export function InspectionTable() {
     const rows = data.map((row, index) => {
       // 화면 렌더링과 동일하게 item_id → 기록 맵 구성
       const itemMap = new Map<string, InspectionItemRow>()
-      ;(row.kukdong_driver_inspection_items ?? []).forEach((it) => {
+      ;(row.universal_driving_check_inspection_items ?? []).forEach((it) => {
         itemMap.set(it.item_id, it)
       })
 
@@ -250,7 +250,7 @@ export function InspectionTable() {
       // 1) 자식 테이블(점검 항목) 먼저 삭제
       const { error: itemsError } = await supabase
         .schema('driver-checklist')
-        .from('kukdong_driver_inspection_items')
+        .from('universal_driving_check_inspection_items')
         .delete()
         .eq('inspection_id', rowId)
 
@@ -259,7 +259,7 @@ export function InspectionTable() {
       // 2) 부모 테이블(점검 마스터) 삭제
       const { error: parentError } = await supabase
         .schema('driver-checklist')
-        .from('kukdong_driver_inspections')
+        .from('universal_driving_check_inspections')
         .delete()
         .eq('id', rowId)
 
@@ -481,7 +481,7 @@ export function InspectionTable() {
               {!isLoading && !error && data?.map((row, index) => {
                 // item_id → InspectionItemRow 맵
                 const itemMap = new Map<string, InspectionItemRow>()
-                ;(row.kukdong_driver_inspection_items ?? []).forEach((it) => {
+                ;(row.universal_driving_check_inspection_items ?? []).forEach((it) => {
                   itemMap.set(it.item_id, it)
                 })
 

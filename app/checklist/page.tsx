@@ -62,7 +62,7 @@ export default function ChecklistPage() {
 
         const { data: vehicle } = await supabase
           .schema('driver-checklist')
-          .from('kukdong_vehicles')
+          .from('universal_driving_check_vehicles')
           .select('driver_name, vehicle_number')
           .or(orFilters.join(','))
           .limit(1)
@@ -140,7 +140,7 @@ export default function ChecklistPage() {
 
       const { data: items, error: itemsError } = await supabase
         .schema('driver-checklist')
-        .from('kukdong_driver_inspection_items')
+          .from('universal_driving_check_inspection_items')
         .select('item_id, status, number_value, note, image_urls')
         .eq('inspection_id', inspectionId)
 
@@ -194,7 +194,7 @@ export default function ChecklistPage() {
 
         const { error: updateError } = await supabase
           .schema('driver-checklist')
-          .from('kukdong_driver_inspections')
+          .from('universal_driving_check_inspections')
           .update({
             driver_name: driverName,
             vehicle_number: vehicleNumber,
@@ -208,7 +208,7 @@ export default function ChecklistPage() {
 
         const { error: deleteError } = await supabase
           .schema('driver-checklist')
-          .from('kukdong_driver_inspection_items')
+          .from('universal_driving_check_inspection_items')
           .delete()
           .eq('inspection_id', inspectionId)
 
@@ -218,7 +218,7 @@ export default function ChecklistPage() {
       } else {
         const { data: inspection, error: inspectionError } = await supabase
           .schema('driver-checklist')
-          .from('kukdong_driver_inspections')
+          .from('universal_driving_check_inspections')
           .insert({
             driver_name: driverName,
             vehicle_number: vehicleNumber,
@@ -252,7 +252,7 @@ export default function ChecklistPage() {
             const filePath = `${inspectionId}/${itemId}_${i + 1}.jpg`
 
             const { error: uploadError } = await supabase.storage
-              .from('kukdong-driver-inspection-images')
+              .from('universal-driving-check-images')
               .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true })
 
             if (uploadError) {
@@ -260,7 +260,7 @@ export default function ChecklistPage() {
             }
 
             const { data: publicUrl } = supabase.storage
-              .from('kukdong-driver-inspection-images')
+              .from('universal-driving-check-images')
               .getPublicUrl(filePath)
             imageUrls.push(publicUrl.publicUrl)
           }
@@ -278,7 +278,7 @@ export default function ChecklistPage() {
 
       const { error: itemsError } = await supabase
         .schema('driver-checklist')
-        .from('kukdong_driver_inspection_items')
+          .from('universal_driving_check_inspection_items')
         .insert(itemRows)
 
       if (itemsError) {
