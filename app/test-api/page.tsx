@@ -15,7 +15,15 @@ export default async function ApiTestPage() {
 
   const headersList = await headers()
   const injectedUserLevel = headersList.get("X-User-Level") || "없음 (미들웨어 미작동 또는 미인증)"
-  const injectedCompanyName = headersList.get("X-Company-Name") || "없음"
+  const rawCompanyName = headersList.get("X-Company-Name")
+  let injectedCompanyName = "없음"
+  if (rawCompanyName) {
+    try {
+      injectedCompanyName = decodeURIComponent(rawCompanyName) || "없음"
+    } catch {
+      injectedCompanyName = rawCompanyName
+    }
+  }
   const injectedCompanyCode = headersList.get("X-Company-Code") || "없음"
 
   let permissionData = null
