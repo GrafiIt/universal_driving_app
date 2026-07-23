@@ -643,7 +643,7 @@ export default function InspectionScreen({
           />
         </Link>
         
-        {/* 중앙: 제목 + 작업자/차량 정보 */}
+        {/* 중앙: 제목 + ��업자/차량 정보 */}
         <div className="flex-1 flex flex-col items-center">
           <h1 className="text-lg font-bold text-[#1a3a52] text-center tracking-tight">점검 체크리스트</h1>
           <p className="text-[11px] font-medium text-gray-500 text-center leading-tight mt-0.5">
@@ -707,7 +707,7 @@ export default function InspectionScreen({
                 doneText: 'text-slate-200',
                 inactiveDoneText: 'text-slate-600',
               },
-              tank: {
+              etc: {
                 activeBg: 'bg-[#5a8fae]',
                 activeText: 'text-white',
                 inactiveBg: 'bg-slate-50',
@@ -716,6 +716,16 @@ export default function InspectionScreen({
                 inactiveShadow: 'border-b-2 border-b-slate-400',
                 doneText: 'text-slate-100',
                 inactiveDoneText: 'text-slate-500',
+              },
+              sign: {
+                activeBg: 'bg-[#3d6b8f]',
+                activeText: 'text-white',
+                inactiveBg: 'bg-orange-50',
+                inactiveText: 'text-[#1a3a52]',
+                inactiveBorder: 'border-orange-300',
+                inactiveShadow: 'border-b-2 border-b-orange-400',
+                doneText: 'text-orange-100',
+                inactiveDoneText: 'text-orange-600',
               },
             } as const
 
