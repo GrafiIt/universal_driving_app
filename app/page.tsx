@@ -1,8 +1,50 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
-import { Smartphone } from 'lucide-react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Smartphone, Loader2 } from 'lucide-react'
+import { createClient } from '@/utils/supabase/client'
 
 export default function LandingPage() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleStart = async () => {
+    setIsLoading(true)
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        const currentUrl = window.location.href
+        const loginUrl = new URL('https://payment.1004.help/auth/login')
+        loginUrl.searchParams.set('next', currentUrl)
+        window.location.href = loginUrl.toString()
+        return
+      }
+
+      const { data, error } = await supabase
+        .schema('driver-checklist')
+        .from('universal_driving_check_vehicles')
+        .select('id')
+        .eq('driver_id', session.user.id)
+        .maybeSingle()
+
+      if (error || !data) {
+        router.push('/unassigned')
+      } else {
+        router.push('/checklist')
+      }
+    } catch (err) {
+      console.error('시작하기 라우팅 오류:', err)
+      router.push('/unassigned')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center bg-white px-6 pb-28 pt-12">
       {/* 최상단: 운수종사자 일상 점검 로고 */}
@@ -38,12 +80,17 @@ export default function LandingPage() {
 
       {/* 최하단: 화면 하단 고정 시작하기 버튼 */}
       <div className="fixed inset-x-0 bottom-0 border-t border-gray-100 bg-white/95 p-4 backdrop-blur">
-        <Link
-          href="/checklist"
-          className="mx-auto flex h-14 w-full max-w-md items-center justify-center rounded-2xl bg-[#ff6b35] text-lg font-bold text-white shadow-lg shadow-orange-500/30 transition-colors hover:bg-[#e85f2e] active:bg-[#d1552a]"
+        <button
+          onClick={handleStart}
+          disabled={isLoading}
+          className="mx-auto flex h-14 w-full max-w-md items-center justify-center rounded-2xl bg-[#ff6b35] text-lg font-bold text-white shadow-lg shadow-orange-500/30 transition-colors hover:bg-[#e85f2e] active:bg-[#d1552a] disabled:opacity-70"
         >
-          시작하기
-        </Link>
+          {isLoading ? (
+            <Loader2 size={24} className="animate-spin" />
+          ) : (
+            '시작하기'
+          )}
+        </button>
       </div>
     </main>
   )
