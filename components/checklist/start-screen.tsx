@@ -73,7 +73,7 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
 
         const { data, error } = await supabase
           .schema('driver-checklist')
-          .from('kukdong_driver_inspections')
+          .from('universal_driving_check_inspections')
           .select('id')
           .eq('vehicle_number', vehicleNumber)
           .gte('inspected_at', todayStart.toISOString())
@@ -311,7 +311,7 @@ function VehicleSearchModal({ onClose, onSelect }: VehicleSearchModalProps) {
         const supabase = createClient()
         const { data, error } = await supabase
           .schema('driver-checklist')
-          .from('kukdong_vehicles')
+          .from('universal_driving_check_vehicles')
           .select('vehicle_number, driver_name')
           .order('vehicle_number', { ascending: true })
 

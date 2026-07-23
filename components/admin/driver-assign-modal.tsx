@@ -75,7 +75,7 @@ export function DriverAssignModal({
       const supabase = createClient()
       const { error } = await supabase
         .schema('driver-checklist')
-        .from('kukdong_vehicles')
+        .from('universal_driving_check_vehicles')
         .update({
           driver_id: driver.user_id,
           driver_name: driver.user_name,

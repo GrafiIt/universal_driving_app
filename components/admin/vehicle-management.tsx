@@ -24,7 +24,7 @@ async function fetchVehicles(): Promise<VehicleRow[]> {
   const supabase = createClient()
   const { data, error } = await supabase
     .schema('driver-checklist')
-    .from('kukdong_vehicles')
+    .from('universal_driving_check_vehicles')
     .select('id, vehicle_number, driver_id, driver_name, created_at')
     .order('created_at', { ascending: true })
 
@@ -67,7 +67,7 @@ export function VehicleManagement() {
       const supabase = createClient()
       const { error: insertError } = await supabase
         .schema('driver-checklist')
-        .from('kukdong_vehicles')
+        .from('universal_driving_check_vehicles')
         .insert({ vehicle_number: trimmed })
 
       if (insertError) throw new Error(insertError.message)
@@ -91,7 +91,7 @@ export function VehicleManagement() {
       const supabase = createClient()
       const { error: deleteError } = await supabase
         .schema('driver-checklist')
-        .from('kukdong_vehicles')
+        .from('universal_driving_check_vehicles')
         .delete()
         .eq('id', row.id)
 
