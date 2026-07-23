@@ -91,15 +91,15 @@ export async function middleware(request: NextRequest) {
     authenticated?: boolean
     user?: unknown
     permission?: {
-      // 스네이크 케이스 / 카멜케이스 / 문자열 "true" 모두 대비
+      program_id?: string
       is_active?: boolean | string
       isActive?: boolean | string
       expires_at?: string | null
       expiresAt?: string | null
-      user_level?: string
-      userLevel?: string
+      user_level?: string | number
+      userLevel?: string | number
     }
-    company?: { name?: string }
+    company?: { name?: string; code?: string }
   } = {}
 
   try {
@@ -167,8 +167,12 @@ export async function middleware(request: NextRequest) {
   // ── 케이스 C: 인증됨, SaaS 권한도 있음 → 정상 통과 ───────
   // API가 리턴한 유저 등급/회사명을 헤더에 주입하여 Page.tsx 에서 활용 가능하게 한다.
   const requestHeaders = new Headers(request.headers)
-  requestHeaders.set("X-User-Level", permission.user_level ?? permission.userLevel ?? "")
+  requestHeaders.set(
+    "X-User-Level",
+    String(permission.user_level ?? permission.userLevel ?? ""),
+  )
   requestHeaders.set("X-Company-Name", verifyData.company?.name ?? "")
+  requestHeaders.set("X-Company-Code", verifyData.company?.code ?? "")
 
   const response = NextResponse.next({ request: { headers: requestHeaders } })
 

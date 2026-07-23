@@ -15,20 +15,17 @@ export async function OPTIONS() {
 }
 
 export async function GET() {
-  const headersList = await headers();
-  const userLevelRaw = headersList.get('X-User-Level');
-
-  if (!userLevelRaw || userLevelRaw.trim() === '') {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401, headers: CORS_HEADERS },
-    );
-  }
-
-  const userLevel = Number(userLevelRaw);
+  const headersList = await headers()
+  const userLevel = headersList.get('X-User-Level')
+  const companyName = headersList.get('X-Company-Name')
+  const companyCode = headersList.get('X-Company-Code')
 
   return NextResponse.json(
-    { user_level: userLevel },
+    {
+      userLevel: userLevel && userLevel !== '' ? Number(userLevel) : null,
+      companyName: companyName || null,
+      companyCode: companyCode || null,
+    },
     { status: 200, headers: CORS_HEADERS },
-  );
+  )
 }
