@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers"
 
 // ── 테스트 대상 상수 ──────────────────────────────
-const PROGRAM_ID = "kukdongdriver"
+const PROGRAM_ID = "DailyDrivingCheck"
 const VERIFY_API_BASE = "https://payment.1004.help/api/v1/verify-permission"
 // ──────────────────────────────────────────────────
 
