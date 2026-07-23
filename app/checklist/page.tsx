@@ -137,8 +137,8 @@ export default function ChecklistPage() {
   }, [])
 
   // ── 금일 미운행 원클릭 제출 ──
-  const handleSkipToday = useCallback(async () => {
-    const confirmed = window.confirm('오늘 차량 미운행으로 기록하시겠습니까?')
+  const handleSkipToday = useCallback(async (existingId?: string | null) => {
+    const confirmed = window.confirm('오늘 차량 미운행으로 기록하시겠습니까?\n(기존 점검 기록이 있다면 미운행으로 덮어씁니다.)')
     if (!confirmed) return
 
     const skippedResults: Record<string, InspectionResult> = {}
@@ -154,7 +154,12 @@ export default function ChecklistPage() {
       }
     }
 
-    setEditingId(null)
+    if (existingId) {
+      setEditingId(existingId)
+    } else {
+      setEditingId(null)
+    }
+
     setResults(skippedResults)
     setPendingSkipSubmit(true)
   }, [])
@@ -212,7 +217,7 @@ export default function ChecklistPage() {
   useEffect(() => {
     if (!pendingSkipSubmit) return
     setPendingSkipSubmit(false)
-    handleSubmitWithResults(results)
+    handleSubmitWithResults(results, true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingSkipSubmit])
 
@@ -221,7 +226,7 @@ export default function ChecklistPage() {
     await handleSubmitWithResults(results)
   }
 
-  const handleSubmitWithResults = async (currentResults: Record<string, InspectionResult>) => {
+  const handleSubmitWithResults = async (currentResults: Record<string, InspectionResult>, isSkipMode = false) => {
     setIsSubmitting(true)
     try {
       const supabase = createClient()
@@ -325,6 +330,11 @@ export default function ChecklistPage() {
         throw new Error(itemsError.message)
       }
 
+      if (isSkipMode) {
+        alert('미운행 처리가 완료되었습니다.')
+        window.location.reload()
+        return
+      }
       alert(isEditing ? '점검일지가 수정되었습니다.' : '점검일지가 저장되었습니다.')
       setResults(createInitialResults())
       setEditingId(null)

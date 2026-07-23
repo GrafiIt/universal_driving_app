@@ -16,7 +16,7 @@ interface StartScreenProps {
   onVehicleChange: (name: string, num: string) => void
   onStart: () => void
   onEdit: (inspectionId: string) => void
-  onSkipToday: () => void
+  onSkipToday: (inspectionId?: string | null) => void
   isLoadingEdit: boolean
 }
 
@@ -275,10 +275,10 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
               : '점검 시작'}
           </button>
           <button
-            onClick={onSkipToday}
-            disabled={isLoadingEdit || isTodayCompleted}
+            onClick={() => onSkipToday(isTodayCompleted ? todayInspectionId : null)}
+            disabled={isLoadingEdit}
             className={`h-14 px-4 text-sm font-bold rounded-none transition-colors border whitespace-nowrap
-              ${isLoadingEdit || isTodayCompleted
+              ${isLoadingEdit
                 ? 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed opacity-60'
                 : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200 active:bg-gray-300'
               }`}
