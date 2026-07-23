@@ -112,7 +112,7 @@ export default function UnassignedPage() {
           로그아웃
         </button>
         <button
-          onClick={() => router.push('/checklist')}
+          onClick={() => router.push('/')}
           className="w-full h-12 bg-white border border-gray-300 text-[#1a3a52] text-base font-bold rounded-none transition-colors hover:bg-gray-50 flex items-center justify-center gap-2"
         >
           <Home size={18} />
