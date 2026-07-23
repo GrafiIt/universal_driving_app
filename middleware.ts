@@ -171,7 +171,10 @@ export async function middleware(request: NextRequest) {
     "X-User-Level",
     String(permission.user_level ?? permission.userLevel ?? ""),
   )
-  requestHeaders.set("X-Company-Name", verifyData.company?.name ?? "")
+  requestHeaders.set(
+    "X-Company-Name",
+    encodeURIComponent(verifyData.company?.name ?? ""),
+  )
   requestHeaders.set("X-Company-Code", verifyData.company?.code ?? "")
 
   const response = NextResponse.next({ request: { headers: requestHeaders } })

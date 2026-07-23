@@ -17,8 +17,17 @@ export async function OPTIONS() {
 export async function GET() {
   const headersList = await headers()
   const userLevel = headersList.get('X-User-Level')
-  const companyName = headersList.get('X-Company-Name')
+  const companyNameRaw = headersList.get('X-Company-Name')
   const companyCode = headersList.get('X-Company-Code')
+
+  let companyName: string | null = null
+  if (companyNameRaw) {
+    try {
+      companyName = decodeURIComponent(companyNameRaw)
+    } catch {
+      companyName = companyNameRaw
+    }
+  }
 
   return NextResponse.json(
     {
