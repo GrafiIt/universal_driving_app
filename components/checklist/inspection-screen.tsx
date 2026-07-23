@@ -643,7 +643,7 @@ export default function InspectionScreen({
           />
         </Link>
         
-        {/* 중앙: 제목 + ��업자/차량 정보 */}
+        {/* 중앙: 제목 + ���업자/차량 정보 */}
         <div className="flex-1 flex flex-col items-center">
           <h1 className="text-lg font-bold text-[#1a3a52] text-center tracking-tight">점검 체크리스트</h1>
           <p className="text-[11px] font-medium text-gray-500 text-center leading-tight mt-0.5">
@@ -822,7 +822,7 @@ export default function InspectionScreen({
                             : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
                         }`}
                       >
-                        {item.customLabels?.[0] ?? '정상'}
+                        {item.customLabels?.[0] ?? '양호'}
                       </button>
                       <button
                         onClick={() => handleStatusClick(item.id, 'abnormal')}
@@ -832,7 +832,7 @@ export default function InspectionScreen({
                             : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
                         }`}
                       >
-                        {item.customLabels?.[1] ?? '이상'}
+                        {item.customLabels?.[1] ?? '불량'}
                       </button>
                     </div>
                   ) : item.type === 'signature' ? (
