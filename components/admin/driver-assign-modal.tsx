@@ -15,7 +15,6 @@ interface DriverUser {
   user_email: string
 }
 
-const USERS_ENDPOINT = 'https://payment.1004.help/api/v1/users?company=DailyDrivingCheck'
 
 interface DriverAssignModalProps {
   vehicle: VehicleRow
@@ -49,12 +48,27 @@ export function DriverAssignModal({
       setLoading(true)
       setLoadError(null)
       try {
-        const res = await fetch(USERS_ENDPOINT)
-        if (!res.ok) throw new Error(`요청 실패 (HTTP ${res.status})`)
+        // 1. 현재 관리자의 회사 코드(companyCode) 가져오기
+        const meRes = await fetch('/api/v1/users/me')
+        if (!meRes.ok) throw new Error('사용자 정보를 불러올 수 없습니다.')
+
+        const meData = await meRes.json()
+        const companyCode = meData.companyCode
+
+        if (!companyCode) {
+          throw new Error('소속 회사 코드가 존재하지 않습니다.')
+        }
+
+        // 2. 회사 코드를 사용하여 기사(유저) 목록 조회
+        const usersEndpoint = `https://payment.1004.help/api/v1/users?company=${companyCode}`
+        const res = await fetch(usersEndpoint)
+
+        if (!res.ok) throw new Error(`기사 목록 요청 실패 (HTTP ${res.status})`)
+
         const json = (await res.json()) as { users?: DriverUser[] }
         setDrivers(Array.isArray(json.users) ? json.users : [])
       } catch (err) {
-        setLoadError('기사 목록을 불러오지 못했습니다.')
+        setLoadError(err instanceof Error ? err.message : '기사 목록을 불러오지 못했습니다.')
       } finally {
         setLoading(false)
       }
