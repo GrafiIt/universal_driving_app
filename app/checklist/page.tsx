@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { Loader } from 'lucide-react'
-import { createInitialResults, type InspectionResult, type CompressedImage } from '@/lib/checklist-data'
+import { createInitialResults, CHECKLIST_ITEMS, type InspectionResult, type CompressedImage } from '@/lib/checklist-data'
 import { dataUrlToBlob } from '@/lib/compress-image'
 import { createClient } from '@/utils/supabase/client'
 import StartScreen from '@/components/checklist/start-screen'
@@ -17,6 +17,7 @@ export default function ChecklistPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isLoadingEdit, setIsLoadingEdit] = useState(false)
+  const [pendingSkipSubmit, setPendingSkipSubmit] = useState(false)
 
   // ── 사용자/차량 매칭 상태 ──
   const [driverName, setDriverName] = useState('')
@@ -135,6 +136,29 @@ export default function ChecklistPage() {
     setStep('inspection')
   }, [])
 
+  // ── 금일 미운행 원클릭 제출 ──
+  const handleSkipToday = useCallback(async () => {
+    const confirmed = window.confirm('오늘 차량 미운행으로 기록하시겠습니까?')
+    if (!confirmed) return
+
+    const skippedResults: Record<string, InspectionResult> = {}
+    for (const item of CHECKLIST_ITEMS) {
+      if (item.id === 's1') {
+        // 조치 여부: '없음' 표시를 위해 normal로 설정
+        skippedResults[item.id] = { itemId: item.id, status: 'normal' }
+      } else if (item.id === 's2') {
+        // 서명: 이미지 대체 불가 → skipped + note로 텍스트 우회
+        skippedResults[item.id] = { itemId: item.id, status: 'skipped', note: '-' }
+      } else {
+        skippedResults[item.id] = { itemId: item.id, status: 'skipped' }
+      }
+    }
+
+    setEditingId(null)
+    setResults(skippedResults)
+    setPendingSkipSubmit(true)
+  }, [])
+
   // ── 오늘 작성한 기록 불러와 수정 모드 진입 ──
   const handleEdit = useCallback(async (inspectionId: string) => {
     setIsLoadingEdit(true)
@@ -184,8 +208,20 @@ export default function ChecklistPage() {
     }
   }, [])
 
+  // ── 미운행 플래그 감지 → 자동 제출 ──
+  useEffect(() => {
+    if (!pendingSkipSubmit) return
+    setPendingSkipSubmit(false)
+    handleSubmitWithResults(results)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSkipSubmit])
+
   // ── Supabase 제출 (신규 INSERT / 수정 UPDATE 분기) ──
   const handleSubmit = async () => {
+    await handleSubmitWithResults(results)
+  }
+
+  const handleSubmitWithResults = async (currentResults: Record<string, InspectionResult>) => {
     setIsSubmitting(true)
     try {
       const supabase = createClient()
@@ -239,10 +275,11 @@ export default function ChecklistPage() {
 
       const itemRows: object[] = []
 
-      for (const [itemId, result] of Object.entries(results)) {
+      for (const [itemId, result] of Object.entries(currentResults)) {
         const imageUrls: string[] = []
 
-        if (result.images && result.images.length > 0) {
+        // skipped 항목은 이미지 업로드를 건너뜀 (서명 이미지 필수 검증 우회)
+        if (result.status !== 'skipped' && result.images && result.images.length > 0) {
           for (let i = 0; i < result.images.length; i++) {
             const img = result.images[i]
 
@@ -321,6 +358,7 @@ export default function ChecklistPage() {
         onVehicleChange={handleVehicleChange}
         onStart={handleStart}
         onEdit={handleEdit}
+        onSkipToday={handleSkipToday}
         isLoadingEdit={isLoadingEdit}
       />
     )

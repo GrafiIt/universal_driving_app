@@ -14,7 +14,7 @@ import { AdminEditModal } from '@/components/admin/admin-edit-modal'
 // ─────────────────────────────────────────
 interface InspectionItemRow {
   item_id: string
-  status: 'normal' | 'abnormal' | 'pending'
+  status: 'normal' | 'abnormal' | 'pending' | 'skipped'
   note: string | null
   image_urls: string[] | null
 }
@@ -186,6 +186,11 @@ export function InspectionTable() {
 
         // 기록 없음 / 미입력
         if (!it || status === 'pending') return '-'
+
+        // 미운행 처리
+        if (status === 'skipped') {
+          return item.type === 'signature' ? '-' : '미운행'
+        }
 
         // 서명 항목
         if (item.type === 'signature') {
@@ -557,6 +562,21 @@ export function InspectionTable() {
                       // DB status값은 그대로 두고, 화면 표시 텍스트만 customLabels로 매핑
                 const normalLabel = item.customLabels?.[0] ?? '양호'
                 const abnormalLabel = item.customLabels?.[1] ?? '불량'
+
+                      // 미운행 처리 (서명 항목은 '-', 나머지는 '미운행' 배지)
+                      if (status === 'skipped') {
+                        return (
+                          <td key={item.id} className={`${borderClass} px-2 py-2.5 text-center`}>
+                            {item.type === 'signature' ? (
+                              <span className="text-[11px] text-slate-300">-</span>
+                            ) : (
+                              <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+                                미운행
+                              </span>
+                            )}
+                          </td>
+                        )
+                      }
 
                       // 서명 항목: image_urls의 서명 이미지를 작은 썸네일로 직접 렌더링
                       if (item.type === 'signature') {

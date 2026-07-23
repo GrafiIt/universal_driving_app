@@ -263,6 +263,8 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
 // ── 완료 판정 헬퍼 ─────────────────────────────────────────────
 // 사진 첨부는 전 항목 선택사항 — 서명 제외 모든 항목은 status 선택만으로 완료 인정
 function isItemCompleted(item: ChecklistItem, result?: InspectionResult): boolean {
+  // skipped 항목은 무조건 완료로 처리 (미운행 원클릭 제출 대응)
+  if (result?.status === 'skipped') return true
   // 서명 항목: 서명 이미지가 1장 이상 저장되어 있으면 완료
   if (item.type === 'signature') {
     return (result?.images?.length ?? 0) >= 1
@@ -643,7 +645,7 @@ export default function InspectionScreen({
           />
         </Link>
         
-        {/* 중앙: 제목 + ���업자/차량 정보 */}
+        {/* 중앙: 제목 + ����업자/차량 정보 */}
         <div className="flex-1 flex flex-col items-center">
           <h1 className="text-lg font-bold text-[#1a3a52] text-center tracking-tight">점검 체크리스트</h1>
           <p className="text-[11px] font-medium text-gray-500 text-center leading-tight mt-0.5">
@@ -765,6 +767,7 @@ export default function InspectionScreen({
         <div className="flex flex-col gap-3">
           {currentItems.map((item) => {
             const result = results[item.id]
+            // 'skipped' 항목은 normal/abnormal 어느 쪽도 아닌 것으로 처리 (방어 코드)
             const isNormal = result?.status === 'normal'
             const isAbnormal = result?.status === 'abnormal'
 
