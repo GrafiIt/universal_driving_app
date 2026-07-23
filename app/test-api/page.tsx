@@ -16,6 +16,7 @@ export default async function ApiTestPage() {
   const headersList = await headers()
   const injectedUserLevel = headersList.get("X-User-Level") || "없음 (미들웨어 미작동 또는 미인증)"
   const injectedCompanyName = headersList.get("X-Company-Name") || "없음"
+  const injectedCompanyCode = headersList.get("X-Company-Code") || "없음"
 
   let permissionData = null
   let errorMessage = null
@@ -55,7 +56,7 @@ export default async function ApiTestPage() {
         {/* 미들웨어 주입 헤더 검증 영역 */}
         <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h2 className="text-lg font-semibold border-l-4 border-blue-500 pl-3 mb-4">1. 미들웨어 헤더 주입 결과</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-50 p-4 rounded border">
               <p className="text-sm text-gray-500 mb-1">X-User-Level</p>
               <p className="font-medium text-gray-900">{injectedUserLevel}</p>
@@ -63,6 +64,10 @@ export default async function ApiTestPage() {
             <div className="bg-gray-50 p-4 rounded border">
               <p className="text-sm text-gray-500 mb-1">X-Company-Name</p>
               <p className="font-medium text-gray-900">{injectedCompanyName}</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded border">
+              <p className="text-sm text-gray-500 mb-1">X-Company-Code</p>
+              <p className="font-medium text-gray-900">{injectedCompanyCode}</p>
             </div>
           </div>
         </section>
