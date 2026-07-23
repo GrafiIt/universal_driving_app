@@ -39,14 +39,16 @@ function getInspectionDateTime(): string {
 function getCategoryIcon(key: string) {
   if (key === 'vehicle') return <Package size={28} className="text-[#1a3a52]" />
   if (key === 'work') return <Boxes size={28} className="text-[#1a3a52]" />
-  if (key === 'tank') return <Zap size={28} className="text-[#1a3a52]" />
+  if (key === 'etc') return <Zap size={28} className="text-[#1a3a52]" />
+  if (key === 'sign') return <Zap size={28} className="text-[#1a3a52]" />
   return null
 }
 
 function getCategoryBg(key: string) {
   if (key === 'vehicle') return 'bg-orange-50'
   if (key === 'work') return 'bg-slate-100'
-  if (key === 'tank') return 'bg-orange-50'
+  if (key === 'etc') return 'bg-slate-100'
+  if (key === 'sign') return 'bg-orange-50'
   return 'bg-gray-50'
 }
 
@@ -226,7 +228,7 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
 
         {/* 카테고리별 요약 카드 */}
         <div className="bg-white rounded-none border border-gray-200 px-4 py-4">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {CATEGORIES.map((cat) => {
               const total = CATEGORY_COUNT[cat.key]
               const completed = getCategoryCompleted(cat.key)

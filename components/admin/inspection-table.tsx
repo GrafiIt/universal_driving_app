@@ -97,7 +97,8 @@ const ORDERED_ITEMS = CHECKLIST_ITEMS // 이미 차량6 → 작업7 → 탱크2 
 // 카테고리별 컬럼 범위 (항목 개수는 CHECKLIST_ITEMS 기준으로 동적 계산 → 컬럼/colSpan 자동 동기화)
 const VEHICLE_ITEMS = ORDERED_ITEMS.filter((i) => i.categoryKey === 'vehicle')
 const WORK_ITEMS    = ORDERED_ITEMS.filter((i) => i.categoryKey === 'work')
-const TANK_ITEMS    = ORDERED_ITEMS.filter((i) => i.categoryKey === 'tank')
+const ETC_ITEMS     = ORDERED_ITEMS.filter((i) => i.categoryKey === 'etc')
+const SIGN_ITEMS    = ORDERED_ITEMS.filter((i) => i.categoryKey === 'sign')
 
 // ─────────────────────────────────────────
 // 모달 상태 타입
@@ -394,26 +395,33 @@ export function InspectionTable() {
                 >
                   차량번호
                 </th>
-                {/* 차량점검 그룹 */}
+                {/* 외관점검 그룹 */}
                 <th
                   colSpan={VEHICLE_ITEMS.length}
                   className="border-x border-slate-200 px-2 py-2 text-center text-xs font-bold text-blue-700 bg-blue-50 whitespace-nowrap"
                 >
-                  차량점검 ({VEHICLE_ITEMS.length}항목)
+                  외관점검 ({VEHICLE_ITEMS.length}항목)
                 </th>
-                {/* 작업관련 그룹 */}
+                {/* 상태점검 그룹 */}
                 <th
                   colSpan={WORK_ITEMS.length}
                   className="border-x border-slate-200 px-2 py-2 text-center text-xs font-bold text-emerald-700 bg-emerald-50 whitespace-nowrap"
                 >
-                  운전자 점검 ({WORK_ITEMS.length}항목)
+                  상태점검 ({WORK_ITEMS.length}항목)
                 </th>
-                {/* 탱크점검 그룹 */}
+                {/* 기타 그룹 */}
                 <th
-                  colSpan={TANK_ITEMS.length}
+                  colSpan={ETC_ITEMS.length}
+                  className="border-x border-slate-200 px-2 py-2 text-center text-xs font-bold text-purple-700 bg-purple-50 whitespace-nowrap"
+                >
+                  기타 ({ETC_ITEMS.length}항목)
+                </th>
+                {/* 조치 및 서명 그룹 */}
+                <th
+                  colSpan={SIGN_ITEMS.length}
                   className="border-l border-slate-200 px-2 py-2 text-center text-xs font-bold text-orange-700 bg-orange-50 whitespace-nowrap"
                 >
-                  비고 및 서명 ({TANK_ITEMS.length}항목)
+                  조치 및 서명 ({SIGN_ITEMS.length}항목)
                 </th>
                 {/* 관리자 그룹 */}
                 <th
@@ -429,9 +437,26 @@ export function InspectionTable() {
                 {ORDERED_ITEMS.map((item, idx) => {
                   const isVehicle = item.categoryKey === 'vehicle'
                   const isWork    = item.categoryKey === 'work'
-                  const bgClass   = isVehicle ? 'bg-blue-50/60' : isWork ? 'bg-emerald-50/60' : 'bg-orange-50/60'
-                  const textClass = isVehicle ? 'text-blue-800' : isWork ? 'text-emerald-800' : 'text-orange-800'
-                  const borderClass = idx === VEHICLE_ITEMS.length - 1 || idx === VEHICLE_ITEMS.length + WORK_ITEMS.length - 1
+                  const isEtc     = item.categoryKey === 'etc'
+                  const bgClass   = isVehicle
+                    ? 'bg-blue-50/60'
+                    : isWork
+                    ? 'bg-emerald-50/60'
+                    : isEtc
+                    ? 'bg-purple-50/60'
+                    : 'bg-orange-50/60'
+                  const textClass = isVehicle
+                    ? 'text-blue-800'
+                    : isWork
+                    ? 'text-emerald-800'
+                    : isEtc
+                    ? 'text-purple-800'
+                    : 'text-orange-800'
+                  // 카테고리 경계(마지막 항목)에서 굵은 구분선
+                  const vehicleEnd = VEHICLE_ITEMS.length - 1
+                  const workEnd    = VEHICLE_ITEMS.length + WORK_ITEMS.length - 1
+                  const etcEnd     = VEHICLE_ITEMS.length + WORK_ITEMS.length + ETC_ITEMS.length - 1
+                  const borderClass = idx === vehicleEnd || idx === workEnd || idx === etcEnd
                     ? 'border-r-2 border-slate-300'
                     : 'border-r border-slate-200'
                   return (
