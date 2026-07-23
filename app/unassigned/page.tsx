@@ -20,8 +20,8 @@ export default function UnassignedPage() {
       <header className="flex items-center px-5 pt-4 pb-4 bg-white gap-4 border-b border-gray-200">
         <div className="flex-shrink-0">
           <Image
-            src="/logo-ci.png"
-            alt="극동 로지텍 CI"
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%89%E1%85%AE%E1%84%8C%E1%85%A9%E1%86%BC%E1%84%89%E1%85%A1%E1%84%8C%E1%85%A1_%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%8C%E1%85%A5%E1%86%B7%E1%84%80%E1%85%A5%E1%86%B7_%E1%84%91%E1%85%A1%E1%84%87%E1%85%B5%E1%84%8F%E1%85%A9%E1%86%AB-xlKIl8cHfJcqJBJpf7zIuwZwuEKoWn.png"
+            alt="운수종사자 일상 점검 로고"
             width={48}
             height={40}
             priority
@@ -30,7 +30,7 @@ export default function UnassignedPage() {
         </div>
         <div className="flex-1 flex justify-center">
           <h1 className="text-[17px] font-bold text-[#1a3a52] leading-tight tracking-tight">
-            운전자 운행 전 일일체크리스트
+            운수종사자 일상 점검
           </h1>
         </div>
         <div className="w-10 h-10 flex-shrink-0" aria-hidden="true" />
@@ -65,12 +65,12 @@ export default function UnassignedPage() {
             </div>
             <span className="text-sm text-gray-600 flex-1 font-medium">담당자</span>
             <span className="text-sm font-bold text-[#1a3a52] text-right">
-              극동로지텍 김인호 차장
+              관리자
             </span>
           </div>
 
           <a
-            href="mailto:inho.kim@kukdonglogitec.com"
+            href="mailto:admin@example.com"
             className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 hover:bg-gray-50 transition-colors"
           >
             <div className="w-9 h-9 rounded-none bg-orange-100 flex items-center justify-center flex-shrink-0">
@@ -78,19 +78,19 @@ export default function UnassignedPage() {
             </div>
             <span className="text-sm text-gray-600 flex-1 font-medium">E-mail</span>
             <span className="text-sm font-bold text-[#1a3a52] text-right break-all">
-              inho.kim@kukdonglogitec.com
+              admin@example.com
             </span>
           </a>
 
           <a
-            href="tel:010-7680-1817"
+            href="tel:010-0000-0000"
             className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors"
           >
             <div className="w-9 h-9 rounded-none bg-orange-100 flex items-center justify-center flex-shrink-0">
               <Phone size={18} className="text-[#1a3a52]" />
             </div>
             <span className="text-sm text-gray-600 flex-1 font-medium">연락처</span>
-            <span className="text-sm font-bold text-[#1a3a52] text-right">010-7680-1817</span>
+            <span className="text-sm font-bold text-[#1a3a52] text-right">010-0000-0000</span>
           </a>
         </div>
       </main>
