@@ -27,7 +27,7 @@ export interface Category {
 // 점검 결과 타입 (단일 항목)
 export interface InspectionResult {
   itemId: string
-  status: 'normal' | 'abnormal' | 'pending' // 정상 | 이상 | 미선택
+  status: 'normal' | 'abnormal' | 'pending' | 'skipped' // 정상 | 이상 | 미선택 | 미운행
   numberValue?: number // 숫자 입력 항목
   note?: string // 이상 시 메모
   images?: CompressedImage[] // 압축된 이미지 (최대 2장)

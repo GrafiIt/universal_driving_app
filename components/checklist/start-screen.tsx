@@ -16,6 +16,7 @@ interface StartScreenProps {
   onVehicleChange: (name: string, num: string) => void
   onStart: () => void
   onEdit: (inspectionId: string) => void
+  onSkipToday: () => void
   isLoadingEdit: boolean
 }
 
@@ -52,7 +53,7 @@ function getCategoryBg(key: string) {
   return 'bg-gray-50'
 }
 
-export default function StartScreen({ results, driverName, vehicleNumber, userLevel, onVehicleChange, onStart, onEdit, isLoadingEdit }: StartScreenProps) {
+export default function StartScreen({ results, driverName, vehicleNumber, userLevel, onVehicleChange, onStart, onEdit, onSkipToday, isLoadingEdit }: StartScreenProps) {
   const [isTodayCompleted, setIsTodayCompleted] = useState(false)
   const [todayInspectionId, setTodayInspectionId] = useState<string | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -255,23 +256,36 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
 
       {/* 하단 버튼 - 콘텐츠 바로 아래 또는 화면 하단에 고정 */}
       <div className="sticky bottom-0 mt-auto px-4 pb-6 pt-3 bg-white border-t border-gray-200">
-        <button
-          onClick={handleMainButtonClick}
-          disabled={isLoadingEdit}
-          className={`w-full h-14 text-white text-lg font-bold rounded-none transition-colors
-            ${isLoadingEdit
-              ? 'bg-gray-400 cursor-not-allowed opacity-70'
+        <div className="flex gap-2">
+          <button
+            onClick={handleMainButtonClick}
+            disabled={isLoadingEdit}
+            className={`flex-1 h-14 text-white text-base font-bold rounded-none transition-colors
+              ${isLoadingEdit
+                ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                : isTodayCompleted
+                ? 'bg-[#1a3a52] hover:bg-[#0f2635] active:bg-[#081a28]'
+                : 'bg-[#ff6b35] hover:bg-[#e55a24] active:bg-[#cc4910]'
+              }`}
+          >
+            {isLoadingEdit
+              ? '불러오는 중...'
               : isTodayCompleted
-              ? 'bg-[#1a3a52] hover:bg-[#0f2635] active:bg-[#081a28]'
-              : 'bg-[#ff6b35] hover:bg-[#e55a24] active:bg-[#cc4910]'
-            }`}
-        >
-          {isLoadingEdit
-            ? '불러오는 중...'
-            : isTodayCompleted
-            ? '오늘 점검 완료 (수정하기)'
-            : '점검 시작'}
-        </button>
+              ? '오늘 점검 완료 (수정하기)'
+              : '점검 시작'}
+          </button>
+          <button
+            onClick={onSkipToday}
+            disabled={isLoadingEdit || isTodayCompleted}
+            className={`h-14 px-4 text-sm font-bold rounded-none transition-colors border whitespace-nowrap
+              ${isLoadingEdit || isTodayCompleted
+                ? 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed opacity-60'
+                : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200 active:bg-gray-300'
+              }`}
+          >
+            금일 미운행
+          </button>
+        </div>
       </div>
 
       {/* 슬라이드 메뉴 */}

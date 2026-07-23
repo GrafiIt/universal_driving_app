@@ -14,7 +14,7 @@ const ORDERED_ITEMS = CHECKLIST_ITEMS
 // ─────────────────────────────────────────
 export interface InspectionItemRow {
   item_id: string
-  status: 'normal' | 'abnormal' | 'pending'
+  status: 'normal' | 'abnormal' | 'pending' | 'skipped'
   note: string | null
   image_urls: string[] | null
 }
@@ -41,7 +41,7 @@ interface AdminEditModalProps {
 // ─────────────────────────────────────────
 interface EditableItem {
   item_id: string
-  status: 'normal' | 'abnormal' | 'pending'
+  status: 'normal' | 'abnormal' | 'pending' | 'skipped'
   note: string
   existingUrls: string[]
   newImages: { dataUrl: string; fileName: string }[]

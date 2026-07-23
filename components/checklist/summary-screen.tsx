@@ -40,7 +40,7 @@ export default function SummaryScreen({
   const getCategoryStats = (key: CategoryKey) => {
     const items = getCategoryItems(key)
     const completed = items.filter(
-      (i) => results[i.id]?.status === 'normal' || results[i.id]?.status === 'abnormal'
+      (i) => results[i.id]?.status === 'normal' || results[i.id]?.status === 'abnormal' || results[i.id]?.status === 'skipped'
     ).length
     const abnormal = items.filter((i) => results[i.id]?.status === 'abnormal').length
     return { total: items.length, completed, abnormal }
@@ -115,6 +115,7 @@ export default function SummaryScreen({
               <div className="flex flex-col gap-2">
                 {items.map((item) => {
                   const result = results[item.id]
+                  const isSkipped = result?.status === 'skipped'
                   const isAbnormal = result?.status === 'abnormal'
                   const isExpanded = expandedItems.has(item.id)
                   const hasDetail = isAbnormal && (result.note || (result.images && result.images.length > 0))
@@ -150,7 +151,11 @@ export default function SummaryScreen({
 
                         {/* 상태 표시 */}
                         <div className="flex items-center gap-1.5 flex-shrink-0">
-                          {isAbnormal ? (
+                          {isSkipped ? (
+                            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-none">
+                              미운행
+                            </span>
+                          ) : isAbnormal ? (
                             <>
                               <span className="text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-none">
                                 {item.customLabels?.[1] ?? '이상'}
