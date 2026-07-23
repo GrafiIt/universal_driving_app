@@ -3,33 +3,64 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Home } from 'lucide-react'
 import { AdminSidebar, type AdminMenuKey } from '@/components/admin/admin-sidebar'
 import { InspectionTable } from '@/components/admin/inspection-table'
 import { VehicleManagement } from '@/components/admin/vehicle-management'
 import { createClient } from '@/utils/supabase/client'
 
-const ADMIN_LOGIN_URL =
-  'https://payment.1004.help/auth/login?next=https://bestdriver.1004.help/admin'
-
 export default function AdminPage() {
+  const router = useRouter()
   const [activeMenu, setActiveMenu] = useState<AdminMenuKey>('checklist')
   const [isChecking, setIsChecking] = useState(true)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
-  // ── 클라이언트 측 2중 세션 체크 (URL 직접 접근 방어) ────
+  // ── 클라이언트 측 세션 및 권한 검증 (URL 직접 접근 방어) ────
   useEffect(() => {
-    const checkSession = async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        window.location.href = ADMIN_LOGIN_URL
-        return
+    const checkAdminPermission = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+
+        // 1. 미로그인 시 현재 URL 기반 로그인 페이지 리다이렉트
+        if (!session) {
+          const currentUrl = window.location.href
+          const loginUrl = new URL('https://payment.1004.help/auth/login')
+          loginUrl.searchParams.set('next', currentUrl)
+          window.location.href = loginUrl.toString()
+          return
+        }
+
+        // 2. 관리자 권한 API 검증
+        const res = await fetch('/api/v1/users/me')
+        let isManager = false
+
+        if (res.ok) {
+          const json = await res.json()
+          const userLevel = json.userLevel ? Number(json.userLevel) : null
+          const userRole = json.userRole
+
+          if (userRole === 'admin' || userLevel === 1 || userLevel === 2) {
+            isManager = true
+          }
+        }
+
+        // 3. 권한 여부에 따른 분기
+        if (isManager) {
+          setIsChecking(false)
+        } else {
+          alert('해당 페이지는 관리자만 접근 가능합니다.')
+          router.push('/')
+        }
+      } catch (err) {
+        console.error('[AdminPage] 권한 확인 중 오류:', err)
+        router.push('/')
       }
-      setIsChecking(false)
     }
-    checkSession()
-  }, [])
+
+    checkAdminPermission()
+  }, [router])
 
   // 세션 확인 중에는 아무것도 렌더링하지 않음
   if (isChecking) return null
@@ -55,7 +86,7 @@ export default function AdminPage() {
           >
             <Image
               src="/logo-ci.png"
-              alt="극동 로지텍 CI"
+              alt="운수종사자 일상 점검 로고"
               width={48}
               height={40}
               priority
