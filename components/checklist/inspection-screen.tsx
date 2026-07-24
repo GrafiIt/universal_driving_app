@@ -146,6 +146,14 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
   const [isCompressing, setIsCompressing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // 모달 렌더링 시 배경 스크롤 잠금
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
+
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(e.target.files ?? [])
@@ -183,7 +191,10 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
             <span className="font-bold text-red-700 text-sm">이상 항목</span>
           </div>
           <button
-            onClick={onCancel}
+            onClick={() => {
+              (document.activeElement as HTMLElement)?.blur()
+              onCancel()
+            }}
             className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100"
             aria-label="닫기"
           >
@@ -202,7 +213,7 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
             onChange={(e) => setNote(e.target.value)}
             rows={3}
             placeholder="이상 내용을 입력하세요"
-            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/40 mb-4"
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-base text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/40 mb-4"
           />
 
           {/* 사진 첨부 */}
@@ -254,7 +265,10 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
 
         {/* 저장 버튼 */}
         <button
-          onClick={() => onSave(note, images)}
+          onClick={() => {
+            (document.activeElement as HTMLElement)?.blur()
+            onSave(note, images)
+          }}
           className="w-full h-12 bg-[#ff6b35] text-white font-bold rounded-none text-sm hover:bg-[#e55a24] transition-colors flex-shrink-0 mt-2"
         >
           저장
@@ -433,6 +447,14 @@ function PhotoAttachModal({ itemLabel, result, onSave, onCancel, isOptional }: P
   const [isCompressing, setIsCompressing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // 모달 렌더링 시 배경 스크롤 잠금
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
+
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(e.target.files ?? [])
@@ -474,7 +496,10 @@ function PhotoAttachModal({ itemLabel, result, onSave, onCancel, isOptional }: P
             </span>
           </div>
           <button
-            onClick={onCancel}
+            onClick={() => {
+              (document.activeElement as HTMLElement)?.blur()
+              onCancel()
+            }}
             className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100"
             aria-label="닫기"
           >
@@ -541,7 +566,12 @@ function PhotoAttachModal({ itemLabel, result, onSave, onCancel, isOptional }: P
 
         {/* 저장 버튼 */}
         <button
-          onClick={() => canSave && onSave(images)}
+          onClick={() => {
+            if (canSave) {
+              (document.activeElement as HTMLElement)?.blur()
+              onSave(images)
+            }
+          }}
           disabled={!canSave}
           className={`w-full h-12 text-white font-bold rounded-none text-sm transition-colors flex-shrink-0 mt-2 ${
             canSave ? 'bg-[#1a3a52] hover:bg-[#0f2635]' : 'bg-gray-400 cursor-not-allowed'
