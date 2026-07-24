@@ -1,8 +1,6 @@
 'use client'
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { ArrowLeft, CheckSquare, Square, AlertTriangle, ChevronDown, ChevronUp, Loader } from 'lucide-react'
+import { CheckSquare, Square, AlertTriangle, ChevronDown, ChevronUp, Loader } from 'lucide-react'
 import { useState } from 'react'
 import { CATEGORIES, CHECKLIST_ITEMS, type CategoryKey, type InspectionResult } from '@/lib/checklist-data'
 
@@ -50,43 +48,6 @@ export default function SummaryScreen({
 
   return (
     <div className="w-full min-h-screen bg-white flex flex-col">
-      {/* 헤더 */}
-      <header className="flex items-center gap-3 px-4 pt-4 pb-4 border-b border-gray-200">
-        {/* 좌측: CI 로고 */}
-        <Link
-          href="/checklist"
-          className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-          aria-label="홈으로 이동"
-        >
-          <Image
-            src="/logo-ci.png"
-            alt="극동 로지텍 CI"
-            width={48}
-            height={40}
-            priority
-            className="object-contain"
-          />
-        </Link>
-        
-        {/* 중앙: 제목 + 작업자/차량 정보 */}
-        <div className="flex-1 flex flex-col items-center">
-          <h1 className="text-lg font-bold text-[#1a3a52] text-center tracking-tight">이상 항목 기록</h1>
-          <p className="text-[11px] font-medium text-gray-500 text-center leading-tight mt-0.5">
-            {driverName} · {vehicleNumber}
-          </p>
-        </div>
-        
-        {/* 우측: 뒤로 가기 */}
-        <button
-          onClick={onBack}
-          disabled={isSubmitting}
-          className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-40 flex-shrink-0"
-          aria-label="뒤로 가기"
-        >
-          <ArrowLeft size={24} className="text-[#1a3a52]" />
-        </button>
-      </header>
-
       {/* 카테고리별 요약 */}
       <main className="flex-1 px-4 pb-32 flex flex-col gap-4">
         {CATEGORIES.map((cat) => {

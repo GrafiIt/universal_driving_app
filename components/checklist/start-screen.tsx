@@ -1,12 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { AlignJustify, UserCircle, Gauge, Clock, Package, Boxes, Zap, Search, X, Loader, Truck } from 'lucide-react'
+import { UserCircle, Gauge, Clock, Package, Boxes, Zap, Search, X, Loader, Truck } from 'lucide-react'
 import { CATEGORIES, CATEGORY_COUNT, CHECKLIST_ITEMS, type InspectionResult } from '@/lib/checklist-data'
 import { createClient } from '@/utils/supabase/client'
-import { SlideMenu } from '@/components/slide-menu'
 
 interface StartScreenProps {
   results: Record<string, InspectionResult>
@@ -57,7 +54,6 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
   const [inspectionState, setInspectionState] = useState<'none' | 'partial' | 'completed'>('none')
   const [fetchedItemStatuses, setFetchedItemStatuses] = useState<Record<string, string>>({})
   const [todayInspectionId, setTodayInspectionId] = useState<string | null>(null)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false)
 
   const isAdmin = userLevel === 1 || userLevel === 2
@@ -160,43 +156,6 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
 
   return (
     <div className="w-full min-h-screen bg-white flex flex-col" style={{ touchAction: 'pan-y' }}>
-      {/* 상단 헤더 */}
-      <header className="flex items-center px-5 pt-4 pb-4 bg-white gap-4 border-b border-gray-200">
-        {/* 좌측: CI 로고 */}
-        <Link
-          href="/checklist"
-          className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-          aria-label="홈으로 이동"
-        >
-          <Image
-            src="/logo-ci.png"
-            alt="극동 로지텍 CI"
-            width={48}
-            height={40}
-            priority
-            className="object-contain"
-          />
-        </Link>
-
-        {/* 중앙: 제목 (flex-1로 중앙 정렬) */}
-        <div className="flex-1 flex justify-center">
-          <h1 className="text-[17px] font-bold text-[#1a3a52] leading-tight tracking-tight">
-            운전자 운행 전 일일체크리스트
-          </h1>
-        </div>
-
-        {/* 우측: 메뉴 버튼 */}
-        <button
-          onClick={() => setIsMenuOpen(true)}
-          aria-label="메뉴 열기"
-          className="w-10 h-10 flex items-center justify-center rounded hover:bg-gray-100 transition-colors flex-shrink-0"
-          aria-haspopup="true"
-          aria-expanded={isMenuOpen}
-        >
-          <AlignJustify size={22} className="text-[#1a3a52]" />
-        </button>
-      </header>
-
       {/* 본문 */}
       <main className="flex-1 px-4 pb-4 flex flex-col gap-3">
         {/* 정보 카드 */}
@@ -319,12 +278,6 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
           </button>
         </div>
       </div>
-
-      {/* 슬라이드 메뉴 */}
-      <SlideMenu
-        isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-      />
 
       {/* 차량 검색 모달 (관리자 대리 점검) */}
       {isVehicleModalOpen && (
