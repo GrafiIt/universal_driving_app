@@ -172,12 +172,12 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onCancel() }}
     >
-      <div className="w-full max-w-md bg-white rounded-none px-5 pt-5 pb-8 shadow-2xl">
+      <div className="w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl px-5 pt-5 pb-8 shadow-2xl max-h-[90dvh] flex flex-col">
         {/* 헤더 */}
-        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-3">
+        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <AlertTriangle size={20} className="text-red-600" />
             <span className="font-bold text-red-700 text-sm">이상 항목</span>
@@ -191,68 +191,71 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
           </button>
         </div>
 
-        <p className="text-sm font-semibold text-gray-800 mb-4 leading-snug">{itemLabel}</p>
+        {/* 내용 영역 - 스크롤 가능 */}
+        <div className="overflow-y-auto pb-4 flex-1">
+          <p className="text-sm font-semibold text-gray-800 mb-4 leading-snug">{itemLabel}</p>
 
-        {/* 이상 내용 텍스트 */}
-        <label className="block text-xs font-semibold text-gray-600 mb-1">이상 내용 입력</label>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          rows={3}
-          placeholder="이상 내용을 입력하세요"
-          className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/40 mb-4"
-        />
+          {/* 이상 내용 텍스트 */}
+          <label className="block text-xs font-semibold text-gray-600 mb-1">이상 내용 입력</label>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            placeholder="이상 내용을 입력하세요"
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/40 mb-4"
+          />
 
-        {/* 사진 첨부 */}
-        <label className="block text-xs font-semibold text-gray-600 mb-2">
-          사진 첨부 <span className="text-gray-400 font-normal">(최대 2장, 자동 압축됨)</span>
-        </label>
-        <div className="flex gap-3 mb-5">
-          {images.map((img, idx) => (
-            <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.dataUrl} alt={`첨부 사진 ${idx + 1}`} className="w-full h-full object-cover" />
-              <button
-                onClick={() => removeImage(idx)}
-                className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center"
-                aria-label="이미지 삭제"
-              >
-                <X size={12} className="text-white" />
-              </button>
-              <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] text-center py-0.5">
-                {formatFileSize(img.compressedSize)}
+          {/* 사진 첨부 */}
+          <label className="block text-xs font-semibold text-gray-600 mb-2">
+            사진 첨부 <span className="text-gray-400 font-normal">(최대 2장, 자동 압축됨)</span>
+          </label>
+          <div className="flex gap-3 mb-5">
+            {images.map((img, idx) => (
+              <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.dataUrl} alt={`첨부 사진 ${idx + 1}`} className="w-full h-full object-cover" />
+                <button
+                  onClick={() => removeImage(idx)}
+                  className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center"
+                  aria-label="이미지 삭제"
+                >
+                  <X size={12} className="text-white" />
+                </button>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] text-center py-0.5">
+                  {formatFileSize(img.compressedSize)}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {images.length < 2 && (
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isCompressing}
-              className="w-24 h-24 rounded-none border-2 border-dashed border-gray-400 flex flex-col items-center justify-center gap-1 hover:bg-orange-50 transition-colors disabled:opacity-50 flex-shrink-0"
-            >
-              <ImagePlus size={20} className="text-gray-600" />
-              <span className="text-xs text-gray-600">
-                {isCompressing ? '압축 중...' : '사진 추가'}
-              </span>
-            </button>
-          )}
+            {images.length < 2 && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isCompressing}
+                className="w-24 h-24 rounded-none border-2 border-dashed border-gray-400 flex flex-col items-center justify-center gap-1 hover:bg-orange-50 transition-colors disabled:opacity-50 flex-shrink-0"
+              >
+                <ImagePlus size={20} className="text-gray-600" />
+                <span className="text-xs text-gray-600">
+                  {isCompressing ? '압축 중...' : '사진 추가'}
+                </span>
+              </button>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            capture="environment"
+            onChange={handleFileChange}
+            className="hidden"
+          />
         </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          capture="environment"
-          onChange={handleFileChange}
-          className="hidden"
-        />
 
         {/* 저장 버튼 */}
         <button
           onClick={() => onSave(note, images)}
-          className="w-full h-12 bg-[#ff6b35] text-white font-bold rounded-none text-sm hover:bg-[#e55a24] transition-colors"
+          className="w-full h-12 bg-[#ff6b35] text-white font-bold rounded-none text-sm hover:bg-[#e55a24] transition-colors flex-shrink-0 mt-2"
         >
           저장
         </button>
@@ -458,12 +461,12 @@ function PhotoAttachModal({ itemLabel, result, onSave, onCancel, isOptional }: P
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onCancel() }}
     >
-      <div className="w-full max-w-md bg-white rounded-none px-5 pt-5 pb-8 shadow-2xl">
+      <div className="w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl px-5 pt-5 pb-8 shadow-2xl max-h-[90dvh] flex flex-col">
         {/* 헤더 */}
-        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-3">
+        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Camera size={20} className="text-[#1a3a52]" />
             <span className="font-bold text-[#1a3a52] text-sm">
@@ -479,65 +482,68 @@ function PhotoAttachModal({ itemLabel, result, onSave, onCancel, isOptional }: P
           </button>
         </div>
 
-        <p className="text-sm font-semibold text-gray-800 mb-4 leading-snug">{itemLabel}</p>
+        {/* 내용 영역 - 스크롤 가능 */}
+        <div className="overflow-y-auto pb-4 flex-1">
+          <p className="text-sm font-semibold text-gray-800 mb-4 leading-snug">{itemLabel}</p>
 
-        <label className="block text-xs font-semibold text-gray-600 mb-2">
-          사진 첨부{' '}
-          <span className="text-gray-400 font-normal">
-            {isOptional ? '(최대 2장 · 선택사항)' : '(최소 1장, 최대 2장 · 필수)'}
-          </span>
-        </label>
-        <div className="flex gap-3 mb-5">
-          {images.map((img, idx) => (
-            <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.dataUrl} alt={`첨부 사진 ${idx + 1}`} className="w-full h-full object-cover" />
-              <button
-                onClick={() => removeImage(idx)}
-                className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center"
-                aria-label="이미지 삭제"
-              >
-                <X size={12} className="text-white" />
-              </button>
-              <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] text-center py-0.5">
-                {formatFileSize(img.compressedSize)}
+          <label className="block text-xs font-semibold text-gray-600 mb-2">
+            사진 첨부{' '}
+            <span className="text-gray-400 font-normal">
+              {isOptional ? '(최대 2장 · 선택사항)' : '(최소 1장, 최대 2장 · 필수)'}
+            </span>
+          </label>
+          <div className="flex gap-3 mb-5">
+            {images.map((img, idx) => (
+              <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.dataUrl} alt={`첨부 사진 ${idx + 1}`} className="w-full h-full object-cover" />
+                <button
+                  onClick={() => removeImage(idx)}
+                  className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center"
+                  aria-label="이미지 삭제"
+                >
+                  <X size={12} className="text-white" />
+                </button>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] text-center py-0.5">
+                  {formatFileSize(img.compressedSize)}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {images.length < 2 && (
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isCompressing}
-              className="w-24 h-24 rounded-none border-2 border-dashed border-gray-400 flex flex-col items-center justify-center gap-1 hover:bg-slate-50 transition-colors disabled:opacity-50 flex-shrink-0"
-            >
-              <Camera size={20} className="text-gray-600" />
-              <span className="text-xs text-gray-600">
-                {isCompressing ? '압축 중...' : '사진 추가'}
-              </span>
-            </button>
+            {images.length < 2 && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isCompressing}
+                className="w-24 h-24 rounded-none border-2 border-dashed border-gray-400 flex flex-col items-center justify-center gap-1 hover:bg-slate-50 transition-colors disabled:opacity-50 flex-shrink-0"
+              >
+                <Camera size={20} className="text-gray-600" />
+                <span className="text-xs text-gray-600">
+                  {isCompressing ? '압축 중...' : '사진 추가'}
+                </span>
+              </button>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            capture="environment"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          {!isOptional && !canSave && (
+            <p className="text-xs text-red-600 mb-2">사진을 최소 1장 이상 첨부해야 합니다.</p>
           )}
         </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          capture="environment"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-
-        {!isOptional && !canSave && (
-          <p className="text-xs text-red-600 mb-2">사진을 최소 1장 이상 첨부해야 합니다.</p>
-        )}
 
         {/* 저장 버튼 */}
         <button
           onClick={() => canSave && onSave(images)}
           disabled={!canSave}
-          className={`w-full h-12 text-white font-bold rounded-none text-sm transition-colors ${
+          className={`w-full h-12 text-white font-bold rounded-none text-sm transition-colors flex-shrink-0 mt-2 ${
             canSave ? 'bg-[#1a3a52] hover:bg-[#0f2635]' : 'bg-gray-400 cursor-not-allowed'
           }`}
         >
