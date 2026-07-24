@@ -22,6 +22,7 @@ interface InspectionScreenProps {
   onUpdateResult: (itemId: string, update: Partial<InspectionResult>) => void
   onFinish: () => void
   onBack: () => void
+  onPartialSave: () => void
 }
 
 // ── iOS 스타일 휠 픽커 ─────────────────────────────────────────
@@ -555,6 +556,7 @@ export default function InspectionScreen({
   onUpdateResult,
   onFinish,
   onBack,
+  onPartialSave,
 }: InspectionScreenProps) {
   const [activeTab, setActiveTab] = useState<CategoryKey>('vehicle')
   const [modalItemId, setModalItemId] = useState<string | null>(null)
@@ -899,17 +901,23 @@ export default function InspectionScreen({
 
       {/* 하단 고정 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-white border-t border-gray-200">
-        <button
-          onClick={onFinish}
-          disabled={!isAllDone}
-          className={`w-full h-14 text-white text-lg font-bold rounded-none shadow-md transition-colors ${
-            isAllDone
-              ? 'bg-[#1a3a52] hover:bg-[#0f2635] active:bg-[#081a28]'
-              : 'bg-gray-400 cursor-not-allowed'
-          }`}
-        >
-          {isAllDone ? '점검 완료 → 최종 확인' : `${totalItems - totalCompleted}개 항목 미완료`}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={onFinish}
+            disabled={!isAllDone}
+            className={`flex-1 h-14 text-white text-lg font-bold rounded-none shadow-md transition-colors ${
+              isAllDone ? 'bg-[#1a3a52] hover:bg-[#0f2635] active:bg-[#081a28]' : 'bg-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {isAllDone ? '점검 완료 → 최종 확인' : `${totalItems - totalCompleted}개 항목 미완료`}
+          </button>
+          <button
+            onClick={onPartialSave}
+            className="w-24 h-14 bg-gray-100 text-gray-700 font-bold text-sm rounded-none border border-gray-300 hover:bg-gray-200 transition-colors flex-shrink-0"
+          >
+            임시저장
+          </button>
+        </div>
       </div>
 
       {/* 이상 입력 모달 */}
