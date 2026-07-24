@@ -107,6 +107,17 @@ export default function LandingPage() {
           <Smartphone size={40} className="text-[#ff6b35]" aria-hidden="true" />
           <span className="text-base font-semibold text-gray-800">휴대폰에 앱 설치하기</span>
         </Link>
+
+        {/* 카피라이트 및 문의처 */}
+        <div className="text-xs text-gray-400 space-y-1 mt-2">
+          <p>CopyRight 그라피아이티(주)</p>
+          <p>
+            E-mail :{' '}
+            <a href="mailto:grafi.it@outlook.kr" className="underline hover:text-gray-600 transition-colors">
+              grafi.it@outlook.kr
+            </a>
+          </p>
+        </div>
       </div>
 
       {/* 최하단: 화면 하단 고정 시작하기 버튼 */}
