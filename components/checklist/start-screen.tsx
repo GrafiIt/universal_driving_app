@@ -54,18 +54,20 @@ function getCategoryBg(key: string) {
 }
 
 export default function StartScreen({ results, driverName, vehicleNumber, userLevel, onVehicleChange, onStart, onEdit, onSkipToday, isLoadingEdit }: StartScreenProps) {
-  const [isTodayCompleted, setIsTodayCompleted] = useState(false)
+  const [inspectionState, setInspectionState] = useState<'none' | 'partial' | 'completed'>('none')
+  const [fetchedItemStatuses, setFetchedItemStatuses] = useState<Record<string, string>>({})
   const [todayInspectionId, setTodayInspectionId] = useState<string | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false)
 
   const isAdmin = userLevel === 1 || userLevel === 2
 
-  // 오늘 점검 완료 여부 조회
+  // 오늘 점검 상태 조회
   useEffect(() => {
     const checkTodayInspection = async () => {
       // 이전 차량의 잔상이 남지 않도록 먼저 초기화
-      setIsTodayCompleted(false)
+      setInspectionState('none')
+      setFetchedItemStatuses({})
       setTodayInspectionId(null)
 
       try {
@@ -77,7 +79,7 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
         const { data, error } = await supabase
           .schema('driver-checklist')
           .from('universal_driving_check_inspections')
-          .select('id')
+          .select('id, universal_driving_check_inspection_items(item_id, status)')
           .eq('vehicle_number', vehicleNumber)
           .gte('inspected_at', todayStart.toISOString())
           .lte('inspected_at', todayEnd.toISOString())
@@ -85,15 +87,33 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
           .limit(1)
 
         if (!error && data && data.length > 0) {
-          setIsTodayCompleted(true)
-          setTodayInspectionId(data[0].id)
+          const inspection = data[0]
+          setTodayInspectionId(inspection.id)
+
+          const items = (inspection.universal_driving_check_inspection_items ?? []) as { item_id: string; status: string }[]
+
+          // item_id → status 매핑 저장
+          const statusMap: Record<string, string> = {}
+          for (const item of items) {
+            statusMap[item.item_id] = item.status
+          }
+          setFetchedItemStatuses(statusMap)
+
+          // pending이 아닌 항목 수로 완료 여부 판별
+          const nonPendingCount = items.filter((i) => i.status !== 'pending').length
+          const totalItems = CHECKLIST_ITEMS.length
+          const isAllCompleted = nonPendingCount === totalItems
+
+          setInspectionState(isAllCompleted ? 'completed' : 'partial')
         } else {
-          setIsTodayCompleted(false)
+          setInspectionState('none')
+          setFetchedItemStatuses({})
           setTodayInspectionId(null)
         }
       } catch {
         // 조회 실패 시 기본값(미완료)으로 유지
-        setIsTodayCompleted(false)
+        setInspectionState('none')
+        setFetchedItemStatuses({})
         setTodayInspectionId(null)
       }
     }
@@ -101,14 +121,17 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
     checkTodayInspection()
   }, [vehicleNumber])
 
-  // 점검 시작 / 수정 분기 핸들러
+  // 점검 시작 / 이어서 / 수정 분기 핸들러
   const handleMainButtonClick = () => {
-    if (isTodayCompleted) {
+    if (inspectionState === 'completed') {
       if (!todayInspectionId) return
       const confirmed = window.confirm('오늘 점검을 마무리했는데 수정하시겠습니까?')
       if (confirmed) {
         onEdit(todayInspectionId)
       }
+    } else if (inspectionState === 'partial') {
+      if (!todayInspectionId) return
+      onEdit(todayInspectionId)
     } else {
       onStart()
     }
@@ -116,14 +139,19 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
 
   const totalItems = CHECKLIST_ITEMS.length
 
-  // 오늘 완료된 경우 모든 항목을 꽉 채운 수치로 표시
-  const displayCompleted = isTodayCompleted ? totalItems : Object.values(results).filter(
-    (r) => r.status === 'normal' || r.status === 'abnormal'
-  ).length
-  const progressPercent = isTodayCompleted ? 100 : Math.round((displayCompleted / totalItems) * 100)
+  // DB 데이터 기준으로 완료 수 계산 (partial/completed 상태일 때)
+  const displayCompleted = inspectionState !== 'none'
+    ? Object.values(fetchedItemStatuses).filter((s) => s !== 'pending').length
+    : Object.values(results).filter((r) => r.status === 'normal' || r.status === 'abnormal').length
+  const progressPercent = Math.round((displayCompleted / totalItems) * 100)
 
   const getCategoryCompleted = (categoryKey: string) => {
-    if (isTodayCompleted) return CATEGORY_COUNT[categoryKey as keyof typeof CATEGORY_COUNT]
+    if (inspectionState !== 'none') {
+      const categoryItems = CHECKLIST_ITEMS.filter((i) => i.categoryKey === categoryKey)
+      return categoryItems.filter(
+        (i) => fetchedItemStatuses[i.id] !== undefined && fetchedItemStatuses[i.id] !== 'pending'
+      ).length
+    }
     const categoryItems = CHECKLIST_ITEMS.filter((i) => i.categoryKey === categoryKey)
     return categoryItems.filter(
       (i) => results[i.id]?.status === 'normal' || results[i.id]?.status === 'abnormal'
@@ -263,19 +291,23 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
             className={`flex-1 h-14 text-white text-base font-bold rounded-none transition-colors
               ${isLoadingEdit
                 ? 'bg-gray-400 cursor-not-allowed opacity-70'
-                : isTodayCompleted
+                : inspectionState === 'completed'
                 ? 'bg-[#1a3a52] hover:bg-[#0f2635] active:bg-[#081a28]'
+                : inspectionState === 'partial'
+                ? 'bg-[#5a8fae] hover:bg-[#4a7a99] active:bg-[#3a6680]'
                 : 'bg-[#ff6b35] hover:bg-[#e55a24] active:bg-[#cc4910]'
               }`}
           >
             {isLoadingEdit
               ? '불러오는 중...'
-              : isTodayCompleted
+              : inspectionState === 'completed'
               ? '오늘 점검 완료 (수정하기)'
+              : inspectionState === 'partial'
+              ? '이어서 점검하기'
               : '점검 시작'}
           </button>
           <button
-            onClick={() => onSkipToday(isTodayCompleted ? todayInspectionId : null)}
+            onClick={() => onSkipToday(inspectionState !== 'none' ? todayInspectionId : null)}
             disabled={isLoadingEdit}
             className={`h-14 px-4 text-sm font-bold rounded-none transition-colors border whitespace-nowrap
               ${isLoadingEdit

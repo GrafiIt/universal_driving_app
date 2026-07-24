@@ -213,6 +213,12 @@ export default function ChecklistPage() {
     }
   }, [])
 
+  // ── 임시저장 ──
+  const handlePartialSave = useCallback(() => {
+    handleSubmitWithResults(results, false, true)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results])
+
   // ── 미운행 플래그 감지 → 자동 제출 ──
   useEffect(() => {
     if (!pendingSkipSubmit) return
@@ -226,7 +232,7 @@ export default function ChecklistPage() {
     await handleSubmitWithResults(results)
   }
 
-  const handleSubmitWithResults = async (currentResults: Record<string, InspectionResult>, isSkipMode = false) => {
+  const handleSubmitWithResults = async (currentResults: Record<string, InspectionResult>, isSkipMode = false, isPartial = false) => {
     setIsSubmitting(true)
     try {
       const supabase = createClient()
@@ -335,6 +341,13 @@ export default function ChecklistPage() {
         window.location.reload()
         return
       }
+
+      if (isPartial) {
+        alert('임시저장 되었습니다.')
+        window.location.reload()
+        return
+      }
+
       alert(isEditing ? '점검일지가 수정되었습니다.' : '점검일지가 저장되었습니다.')
       setResults(createInitialResults())
       setEditingId(null)
@@ -383,6 +396,7 @@ export default function ChecklistPage() {
         onUpdateResult={handleUpdateResult}
         onFinish={() => setStep('summary')}
         onBack={() => setStep('start')}
+        onPartialSave={handlePartialSave}
       />
     )
   }
