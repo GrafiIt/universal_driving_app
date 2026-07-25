@@ -26,6 +26,21 @@ export default function ChecklistPage() {
   const [isInitializing, setIsInitializing] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0])
 
+  // ── 글로벌 뒤로가기 이벤트 수신 ──
+  useEffect(() => {
+    const handleGlobalBack = () => {
+      setStep((prev) => {
+        if (prev === 'summary') return 'inspection'
+        if (prev === 'inspection') return 'start'
+        // start 화면에서 뒤로가기를 누르면 메인(/)으로 이동
+        window.location.href = '/'
+        return prev
+      })
+    }
+    window.addEventListener('global-back', handleGlobalBack)
+    return () => window.removeEventListener('global-back', handleGlobalBack)
+  }, [])
+
   // ── 마운트 시 세션·권한·차량 매칭 검증 ──
   useEffect(() => {
     let cancelled = false

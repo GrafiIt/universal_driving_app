@@ -90,7 +90,7 @@ export function SlideMenu({ isOpen, onClose }: SlideMenuProps) {
     <>
       {/* 오버레이 배경 */}
       <div
-        className={`fixed inset-0 z-20 bg-black/50 transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
@@ -100,7 +100,7 @@ export function SlideMenu({ isOpen, onClose }: SlideMenuProps) {
 
       {/* 슬라이드 메뉴 패널 */}
       <div
-        className={`fixed top-0 right-0 z-30 h-full w-72 bg-slate-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 z-[70] h-full w-72 bg-slate-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
