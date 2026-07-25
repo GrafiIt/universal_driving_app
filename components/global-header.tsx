@@ -52,7 +52,13 @@ export default function GlobalHeader() {
         {/* 우측: 뒤로가기 + 햄버거 메뉴 */}
         <div className="flex items-center gap-3 flex-shrink-0">
           <button
-            onClick={() => router.back()}
+            onClick={() => {
+              if (pathname === '/checklist') {
+                window.dispatchEvent(new CustomEvent('global-back'))
+              } else {
+                router.back()
+              }
+            }}
             aria-label="뒤로 가기"
             className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 transition-colors"
           >
