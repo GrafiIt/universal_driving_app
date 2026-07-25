@@ -101,7 +101,7 @@ function MonthSheet({
   const days = Array.from({ length: 31 }, (_, i) => i + 1)
 
   return (
-    <div className="w-[297mm] min-h-[210mm] mx-auto bg-white text-black p-[10mm] shadow-lg">
+    <div className="w-full h-full bg-white text-black print:shadow-none shadow-lg">
       {/* 제목 */}
       <p className="text-center text-[13px] font-bold mb-1.5 tracking-widest">
         운수종사자 일상점검표
@@ -188,7 +188,7 @@ function MonthSheet({
                   return (
                     <td
                       key={d}
-                      className={`border border-black p-0 h-[38px] align-middle font-medium text-[8.5px] ${
+                      className={`border border-black p-0 h-[32px] align-middle font-medium text-[8.5px] ${
                         outOfRange ? 'bg-gray-100' : ''
                       }`}
                     >
@@ -204,7 +204,7 @@ function MonthSheet({
           <tr>
             <th
               colSpan={2}
-              className="border border-black h-[50px] font-bold text-[8.5px]"
+              className="border border-black h-[42px] font-bold text-[8.5px]"
             >
               점검자 확인(서명)
             </th>
@@ -215,7 +215,7 @@ function MonthSheet({
               return (
                 <td
                   key={d}
-                  className={`border border-black p-0 h-[50px] align-middle ${
+                  className={`border border-black p-0 h-[42px] align-middle ${
                     outOfRange ? 'bg-gray-100' : ''
                   }`}
                 >
@@ -236,13 +236,13 @@ function MonthSheet({
           <tr>
             <th
               colSpan={2}
-              className="border border-black h-[110px] font-bold text-[8.5px] align-middle"
+              className="border border-black h-[90px] font-bold text-[8.5px] align-middle"
             >
               불량상태 조치 기록
             </th>
             <td
               colSpan={31}
-              className="border border-black text-left px-2 py-1 align-top h-[110px] text-[8.5px]"
+              className="border border-black text-left px-2 py-1 align-top h-[90px] text-[8.5px]"
             >
               {actionLines.map((line, idx) => (
                 <span key={idx}>
@@ -270,6 +270,7 @@ export function YearlyReport() {
   const [companyName, setCompanyName] = useState('')
   const [loading, setLoading] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
+  const [activePreviewMonth, setActivePreviewMonth] = useState<number | 'all'>(new Date().getMonth() + 1)
 
   // 월별 데이터: byMonthDay[month][day][item_id]
   const [byMonthDay, setByMonthDay] = useState<ByMonthDay>({})
@@ -409,34 +410,48 @@ export function YearlyReport() {
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 0; }
-          html, body {
+
+          /* 브라우저 및 모든 부모 요소 스크롤/높이 제한 해제 */
+          html, body, #__next, main, div {
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 297mm;
             overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
           }
-          /* 관리자 사이드바, 헤더, 네비게이션, 인쇄 제어버튼 전체 강제 숨김 */
+
+          /* 관리자 사이드바, 헤더, 네비게이션, 탭, 컨트롤 버튼 전체 강제 숨김 */
           aside, header, nav, .print\\:hidden {
             display: none !important;
           }
+
           ::-webkit-scrollbar { display: none; }
+
+          /* 화면에서 hidden이었던 월별 시트도 인쇄 시 강제 출력 */
+          .print\\:block {
+            display: block !important;
+          }
+
+          /* 월별 페이지 분할 */
           .page-break {
             page-break-after: always !important;
             break-after: page !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
           }
-          /* 마지막 월은 page-break 불필요 */
+
           .page-break:last-child {
             page-break-after: auto !important;
             break-after: auto !important;
           }
+
+          /* A4 가로 고정 크기 */
           .print-sheet {
             width: 297mm !important;
             height: 210mm !important;
             margin: 0 !important;
-            padding: 0 !important;
+            padding: 8mm 10mm !important;
             box-sizing: border-box !important;
             box-shadow: none !important;
             background-color: white !important;
@@ -545,6 +560,35 @@ export function YearlyReport() {
         </div>
       </div>
 
+      {/* 월 선택 탭 (화면 전용, 인쇄 시 숨김) */}
+      {dataLoaded && !loading && (
+        <div className="print:hidden flex flex-wrap items-center gap-1.5 px-5 py-3 bg-white border-b border-gray-200">
+          {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
+            <button
+              key={m}
+              onClick={() => setActivePreviewMonth(m)}
+              className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
+                activePreviewMonth === m
+                  ? 'bg-[#ff6b35] text-white'
+                  : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
+              }`}
+            >
+              {m}월
+            </button>
+          ))}
+          <button
+            onClick={() => setActivePreviewMonth('all')}
+            className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
+              activePreviewMonth === 'all'
+                ? 'bg-slate-700 text-white'
+                : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
+            }`}
+          >
+            전체
+          </button>
+        </div>
+      )}
+
       {/* 안내 메시지 */}
       {!dataLoaded && !loading && (
         <div className="print:hidden flex flex-col items-center justify-center gap-3 py-32 text-slate-500">
@@ -564,18 +608,23 @@ export function YearlyReport() {
       {dataLoaded && !loading && (
         <div className="overflow-x-auto py-6 print:py-0 print:overflow-visible">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((monthNum) => (
-            <div key={monthNum} className="page-break mb-6 print:mb-0">
-              <div className="print-sheet">
-                <MonthSheet
-                  year={year}
-                  monthNum={monthNum}
-                  companyName={companyName}
-                  vehicleNumber={selectedVehicle?.vehicle_number ?? ''}
-                  driverName={selectedVehicle?.driver_name ?? ''}
-                  byDay={byMonthDay[monthNum] ?? {}}
-                  actionLines={monthActionLines[monthNum] ?? []}
-                />
-              </div>
+            <div
+              key={monthNum}
+              className={`page-break print-sheet mb-6 print:mb-0 ${
+                activePreviewMonth === 'all' || activePreviewMonth === monthNum
+                  ? 'block'
+                  : 'hidden print:block'
+              }`}
+            >
+              <MonthSheet
+                year={year}
+                monthNum={monthNum}
+                companyName={companyName}
+                vehicleNumber={selectedVehicle?.vehicle_number ?? ''}
+                driverName={selectedVehicle?.driver_name ?? ''}
+                byDay={byMonthDay[monthNum] ?? {}}
+                actionLines={monthActionLines[monthNum] ?? []}
+              />
             </div>
           ))}
         </div>
