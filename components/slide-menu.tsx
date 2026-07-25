@@ -10,9 +10,6 @@ interface SlideMenuProps {
   onClose: () => void;
 }
 
-// 통합 인증 사이트 로그인 페이지
-const LOGIN_URL = 'https://payment.1004.help/auth/login';
-
 export function SlideMenu({ isOpen, onClose }: SlideMenuProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -82,7 +79,7 @@ export function SlideMenu({ isOpen, onClose }: SlideMenuProps) {
     } catch (err) {
       console.error('[v0] 로그아웃 오류:', err);
     } finally {
-      window.location.href = LOGIN_URL;
+      window.location.href = '/';
     }
   };
 
