@@ -64,8 +64,6 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
   const [dateInspectionId, setDateInspectionId] = useState<string | null>(null)
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false)
 
-  const dateInputRef = useRef<HTMLInputElement>(null)
-
   const isAdmin = userLevel === 1 || userLevel === 2
   const todayStr = getTodayString()
   const minDate = getMinDateString()
@@ -222,26 +220,22 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
                 {formatDateDisplay(selectedDate)}
                 {!isToday && <span className="ml-1 text-xs font-normal text-[#ff6b35]">(소급)</span>}
               </span>
-              <button
-                onClick={() => dateInputRef.current?.showPicker()}
-                aria-label="점검일 선택"
-                className="w-8 h-8 flex items-center justify-center rounded-none bg-orange-100 text-[#ff6b35] hover:bg-orange-200 active:bg-orange-300 transition-colors flex-shrink-0"
-              >
-                <Calendar size={16} />
-              </button>
-              <input
-                ref={dateInputRef}
-                type="date"
-                min={minDate}
-                max={todayStr}
-                value={selectedDate}
-                onChange={(e) => {
-                  if (e.target.value) onDateChange(e.target.value)
-                }}
-                className="sr-only"
-                aria-hidden="true"
-                tabIndex={-1}
-              />
+              <div className="relative flex items-center justify-center w-8 h-8 flex-shrink-0">
+                <div className="absolute inset-0 flex items-center justify-center rounded-none bg-orange-100 text-[#ff6b35] hover:bg-orange-200 active:bg-orange-300 transition-colors pointer-events-none">
+                  <Calendar size={16} />
+                </div>
+                <input
+                  type="date"
+                  min={minDate}
+                  max={todayStr}
+                  value={selectedDate}
+                  onChange={(e) => {
+                    if (e.target.value) onDateChange(e.target.value)
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  aria-label="점검일 선택"
+                />
+              </div>
             </div>
           </div>
         </div>
