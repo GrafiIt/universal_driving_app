@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AdminSidebar, type AdminMenuKey } from '@/components/admin/admin-sidebar'
 import { InspectionTable } from '@/components/admin/inspection-table'
 import { VehicleManagement } from '@/components/admin/vehicle-management'
+import { YearlyReport } from '@/components/admin/yearly-report'
 import { createClient } from '@/utils/supabase/client'
 
 export default function AdminPage() {
@@ -79,6 +80,7 @@ export default function AdminPage() {
         <div className="flex-1 overflow-y-auto p-8">
           {activeMenu === 'checklist' && <InspectionTable />}
           {activeMenu === 'vehicles' && <VehicleManagement />}
+          {activeMenu === 'yearly-report' && <YearlyReport />}
           {activeMenu === 'permissions' && (
             <iframe
               src="https://payment.1004.help/dashboard/members"
