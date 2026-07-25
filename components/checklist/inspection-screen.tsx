@@ -368,7 +368,55 @@ function SignaturePad({ itemId, savedImage, onSave, onClear }: SignaturePadProps
   const handleSave = () => {
     const canvas = canvasRef.current
     if (!canvas || !hasStroke) return
-    const dataUrl = canvas.toDataURL('image/png')
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // --- 오토 크롭(Auto-Crop) 로직 시작 ---
+    const width = canvas.width
+    const height = canvas.height
+    const imgData = ctx.getImageData(0, 0, width, height)
+    const data = imgData.data
+
+    let minX = width, minY = height, maxX = 0, maxY = 0
+
+    // 불투명한 픽셀의 상하좌우 최소/최대 좌표 찾기
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const alpha = data[(y * width + x) * 4 + 3]
+        if (alpha > 0) {
+          if (x < minX) minX = x
+          if (x > maxX) maxX = x
+          if (y < minY) minY = y
+          if (y > maxY) maxY = y
+        }
+      }
+    }
+
+    let dataUrl = canvas.toDataURL('image/png')
+
+    // 그려진 픽셀이 있는 경우에만 빈 여백 크롭 수행
+    if (minX < maxX && minY < maxY) {
+      const padding = Math.round(15 * (window.devicePixelRatio || 1)) // 안전 여백
+      minX = Math.max(0, minX - padding)
+      minY = Math.max(0, minY - padding)
+      maxX = Math.min(width, maxX + padding)
+      maxY = Math.min(height, maxY + padding)
+
+      const cropW = maxX - minX
+      const cropH = maxY - minY
+
+      const croppedCanvas = document.createElement('canvas')
+      croppedCanvas.width = cropW
+      croppedCanvas.height = cropH
+      const croppedCtx = croppedCanvas.getContext('2d')
+      if (croppedCtx) {
+        croppedCtx.putImageData(ctx.getImageData(minX, minY, cropW, cropH), 0, 0)
+        dataUrl = croppedCanvas.toDataURL('image/png')
+      }
+    }
+    // --- 오토 크롭 로직 끝 ---
+
     const size = Math.round((dataUrl.length * 3) / 4)
     onSave({
       dataUrl,
@@ -382,7 +430,7 @@ function SignaturePad({ itemId, savedImage, onSave, onClear }: SignaturePadProps
   // 저장 완료 상태: 서명 이미지 미리보기 + 다시 서명 버튼
   if (!isEditing && savedImage) {
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
         <div className="rounded-none border border-gray-300 bg-white p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={savedImage.dataUrl} alt="저장된 서명" className="w-full h-40 object-contain" />
@@ -398,7 +446,7 @@ function SignaturePad({ itemId, savedImage, onSave, onClear }: SignaturePadProps
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
       <canvas
         ref={canvasRef}
         className="w-full h-40 rounded-none border-2 border-dashed border-gray-400 bg-white touch-none cursor-crosshair"
