@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+
 import { usePathname, useRouter } from 'next/navigation'
 import { AlignJustify, ArrowLeft } from 'lucide-react'
 import { SlideMenu } from '@/components/slide-menu'
@@ -37,10 +37,20 @@ export default function GlobalHeader() {
     <>
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center">
         {/* 좌측: 로고 */}
-        <Link href="/checklist" aria-label="홈으로 이동" className="flex-shrink-0">
+        <button
+          onClick={() => {
+            if (pathname === '/checklist') {
+              window.dispatchEvent(new CustomEvent('global-home'))
+            } else {
+              router.push('/checklist')
+            }
+          }}
+          aria-label="홈으로 이동"
+          className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/favicon.png" alt="로고" className="h-8 w-auto object-contain" />
-        </Link>
+        </button>
 
         {/* 중앙: 회사명 또는 기본 타이틀 */}
         <div className="flex-1 text-center">
