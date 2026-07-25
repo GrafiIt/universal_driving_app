@@ -100,7 +100,7 @@ function MonthSheet({
   const days = Array.from({ length: 31 }, (_, i) => i + 1)
 
   return (
-    <div className="w-[297mm] min-h-[210mm] mx-auto bg-white text-black p-[10mm] shadow-lg print-container">
+    <div className="w-[297mm] min-h-[210mm] mx-auto bg-white text-black p-[10mm] shadow-lg">
       {/* 제목 */}
       <p className="text-center text-[13px] font-bold mb-1.5 tracking-widest">
         운수종사자 일상점검표
@@ -409,9 +409,14 @@ export function YearlyReport() {
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
-            overflow: hidden;
+            width: 297mm;
+            height: 210mm;
+            overflow: visible !important;
           }
-          header, nav, .print\\:hidden { display: none !important; }
+          /* 관리자 사이드바, 헤더, 네비게이션, 인쇄 제어버튼 전체 강제 숨김 */
+          aside, header, nav, .print\\:hidden {
+            display: none !important;
+          }
           ::-webkit-scrollbar { display: none; }
           .print-container {
             width: 297mm !important;
@@ -425,8 +430,10 @@ export function YearlyReport() {
             background-color: white !important;
           }
           .page-break {
-            page-break-after: always;
-            break-after: page;
+            page-break-after: always !important;
+            break-after: page !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
         }
       `}</style>
@@ -446,19 +453,39 @@ export function YearlyReport() {
                 onChange={(e) => {
                   setVehicleSearch(e.target.value)
                   setShowDropdown(true)
-                  if (!e.target.value) setSelectedVehicle(null)
+                  if (!e.target.value) {
+                    setSelectedVehicle(null)
+                    setDataLoaded(false)
+                  }
                 }}
                 onFocus={() => setShowDropdown(true)}
+                onClick={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                className="w-52 text-sm outline-none bg-transparent"
+                className="w-52 text-sm font-bold text-black outline-none bg-transparent placeholder:font-normal placeholder:text-gray-400"
               />
+              {selectedVehicle && (
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    setSelectedVehicle(null)
+                    setVehicleSearch('')
+                    setDataLoaded(false)
+                    setShowDropdown(true)
+                  }}
+                  className="ml-1 flex-shrink-0 text-gray-400 hover:text-gray-700 text-base leading-none"
+                  aria-label="차량 선택 초기화"
+                >
+                  ×
+                </button>
+              )}
             </div>
             {showDropdown && filteredVehicles.length > 0 && (
               <ul className="absolute top-full left-0 z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg text-sm">
                 {filteredVehicles.map((v) => (
                   <li
                     key={v.vehicle_number}
-                    onClick={() => handleVehicleSelect(v)}
+                    onMouseDown={() => handleVehicleSelect(v)}
                     className="cursor-pointer px-3 py-2 hover:bg-slate-50 border-b border-gray-100 last:border-0"
                   >
                     <span className="font-semibold text-slate-800">{v.vehicle_number}</span>
@@ -474,17 +501,18 @@ export function YearlyReport() {
           {/* 연도 선택 */}
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
             연도
-            <input
-              type="number"
-              min={2020}
-              max={2100}
+            <select
               value={year}
               onChange={(e) => {
                 setYear(Number(e.target.value))
                 setDataLoaded(false)
               }}
-              className="w-24 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-[#ff6b35] focus:outline-none"
-            />
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-semibold text-black focus:border-[#ff6b35] focus:outline-none bg-white"
+            >
+              {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - i).map((y) => (
+                <option key={y} value={y}>{y}년</option>
+              ))}
+            </select>
           </label>
 
           {/* 조회 버튼 */}
@@ -528,7 +556,7 @@ export function YearlyReport() {
       {dataLoaded && !loading && (
         <div className="overflow-x-auto py-6 print:py-0">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((monthNum) => (
-            <div key={monthNum} className="page-break mb-6 print:mb-0">
+            <div key={monthNum} className="page-break print-container mb-6 print:mb-0">
               <MonthSheet
                 year={year}
                 monthNum={monthNum}
