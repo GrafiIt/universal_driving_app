@@ -210,7 +210,7 @@ export default function MonthlyReportPage() {
         }
 
         actions.sort((a, b) => a.day - b.day)
-        const lines = actions.slice(0, 3).map(
+        const lines = actions.slice(0, 7).map(
           (a) =>
             `[${monthNum}월 ${a.day}일] ${a.note && a.note.trim() ? a.note : '조치 필요'}`,
         )
@@ -246,6 +246,7 @@ export default function MonthlyReportPage() {
             padding: 0 !important;
             width: 297mm;
             height: 210mm;
+            overflow: hidden;
           }
           header, nav, .print\\:hidden { display: none !important; }
           ::-webkit-scrollbar { display: none; }
@@ -253,10 +254,12 @@ export default function MonthlyReportPage() {
             width: 297mm !important;
             height: 210mm !important;
             margin: 0 !important;
-            padding: 10mm 12mm !important;
+            padding: 12mm 15mm !important;
+            box-sizing: border-box !important;
             box-shadow: none !important;
             display: flex;
             flex-direction: column;
+            background-color: white !important;
           }
         }
       `}</style>
@@ -319,7 +322,7 @@ export default function MonthlyReportPage() {
             </table>
 
             {/* ── 메인 점검표 (항목=행, 날짜=열) ── */}
-            <table className="w-full flex-1 border-collapse border border-black table-fixed text-center text-[8.5px] leading-tight">
+            <table className="w-full flex-1 h-full border-collapse border border-black table-fixed text-center text-[8.5px] leading-tight">
               <colgroup>
                 {/* 카테고리 열 */}
                 <col style={{ width: '3%' }} />
@@ -376,7 +379,9 @@ export default function MonthlyReportPage() {
                       )}
 
                       {/* 항목명 */}
-                      <td className="border border-black text-left px-1 py-0.5 leading-snug text-[8px] align-middle">
+                      <td className={`border border-black text-left px-1 py-0.5 align-middle leading-snug ${
+                        item.id === 'v4' ? 'text-[8.5px]' : 'text-[10px] md:text-[11px]'
+                      }`}>
                         {item.label}
                       </td>
 
@@ -386,7 +391,7 @@ export default function MonthlyReportPage() {
                         return (
                           <td
                             key={d}
-                            className="border border-black p-0 h-[34px] align-middle font-medium text-[8.5px]"
+                            className="border border-black p-0 h-[38px] align-middle font-medium text-[8.5px]"
                           >
                             {statusSymbol(row?.status ?? null)}
                           </td>
@@ -400,7 +405,7 @@ export default function MonthlyReportPage() {
                 <tr>
                   <th
                     colSpan={2}
-                    className="border border-black h-[45px] font-bold text-[8.5px]"
+                    className="border border-black h-[50px] font-bold text-[8.5px]"
                   >
                     점검자 확인(서명)
                   </th>
@@ -410,7 +415,7 @@ export default function MonthlyReportPage() {
                     return (
                       <td
                         key={d}
-                        className="border border-black p-0 h-[45px] align-middle"
+                        className="border border-black p-0 h-[50px] align-middle"
                       >
                         {url ? (
                           <img
@@ -429,13 +434,13 @@ export default function MonthlyReportPage() {
                 <tr>
                   <th
                     colSpan={2}
-                    className="border border-black h-[100px] font-bold text-[8.5px] align-middle"
+                    className="border border-black h-[110px] font-bold text-[8.5px] align-middle"
                   >
                     불량상태 조치 기록
                   </th>
                   <td
                     colSpan={31}
-                    className="border border-black text-left px-2 py-1 align-top h-[100px] text-[8.5px]"
+                    className="border border-black text-left px-2 py-1 align-top h-[110px] text-[8.5px]"
                   >
                     {actionLines.map((line, idx) => (
                       <span key={idx}>
