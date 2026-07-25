@@ -239,11 +239,25 @@ export default function MonthlyReportPage() {
     <div className="min-h-screen bg-gray-100 print:bg-white">
       <style>{`
         @media print {
-          @page { size: A4 landscape; margin: 10mm; }
-          body, html { background: white; margin: 0; padding: 0; }
-          header, nav { display: none !important; }
-          .print\\:hidden { display: none !important; }
+          @page { size: A4 landscape; margin: 0; }
+          html, body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 297mm;
+            height: 210mm;
+          }
+          header, nav, .print\\:hidden { display: none !important; }
           ::-webkit-scrollbar { display: none; }
+          .print-container {
+            width: 297mm !important;
+            height: 210mm !important;
+            margin: 0 !important;
+            padding: 10mm 12mm !important;
+            box-shadow: none !important;
+            display: flex;
+            flex-direction: column;
+          }
         }
       `}</style>
 
@@ -279,7 +293,7 @@ export default function MonthlyReportPage() {
       ) : (
         <div className="overflow-x-auto py-6 print:py-0">
           {/* A4 가로 양식 */}
-          <div className="max-w-[277mm] mx-auto bg-white text-black p-[6mm] shadow-lg print:shadow-none print:p-0 print:w-full">
+          <div className="w-[297mm] min-h-[210mm] mx-auto bg-white text-black p-[10mm] shadow-lg print-container">
 
             {/* 제목 */}
             <p className="text-center text-[13px] font-bold mb-1.5 tracking-widest">
@@ -305,7 +319,7 @@ export default function MonthlyReportPage() {
             </table>
 
             {/* ── 메인 점검표 (항목=행, 날짜=열) ── */}
-            <table className="w-full border-collapse border border-black table-fixed text-center text-[8.5px] leading-tight">
+            <table className="w-full flex-1 border-collapse border border-black table-fixed text-center text-[8.5px] leading-tight">
               <colgroup>
                 {/* 카테고리 열 */}
                 <col style={{ width: '3%' }} />
@@ -372,7 +386,7 @@ export default function MonthlyReportPage() {
                         return (
                           <td
                             key={d}
-                            className="border border-black p-0 h-[22px] align-middle font-medium text-[8.5px]"
+                            className="border border-black p-0 h-[34px] align-middle font-medium text-[8.5px]"
                           >
                             {statusSymbol(row?.status ?? null)}
                           </td>
@@ -386,7 +400,7 @@ export default function MonthlyReportPage() {
                 <tr>
                   <th
                     colSpan={2}
-                    className="border border-black py-1 font-bold text-[8.5px]"
+                    className="border border-black h-[45px] font-bold text-[8.5px]"
                   >
                     점검자 확인(서명)
                   </th>
@@ -396,14 +410,14 @@ export default function MonthlyReportPage() {
                     return (
                       <td
                         key={d}
-                        className="border border-black p-0 h-[26px] align-middle"
+                        className="border border-black p-0 h-[45px] align-middle"
                       >
                         {url ? (
                           <img
                             src={url}
                             alt="서명"
                             crossOrigin="anonymous"
-                            className="h-4 w-full object-contain"
+                            className="h-7 w-full object-contain"
                           />
                         ) : null}
                       </td>
@@ -415,13 +429,13 @@ export default function MonthlyReportPage() {
                 <tr>
                   <th
                     colSpan={2}
-                    className="border border-black py-2 font-bold text-[8.5px] align-middle"
+                    className="border border-black h-[100px] font-bold text-[8.5px] align-middle"
                   >
                     불량상태 조치 기록
                   </th>
                   <td
                     colSpan={31}
-                    className="border border-black text-left px-2 py-1 align-top h-[50px] text-[8.5px]"
+                    className="border border-black text-left px-2 py-1 align-top h-[100px] text-[8.5px]"
                   >
                     {actionLines.map((line, idx) => (
                       <span key={idx}>
