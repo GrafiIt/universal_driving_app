@@ -460,104 +460,137 @@ export function YearlyReport() {
         }
       `}</style>
 
-      {/* 상단 컨트롤 (인쇄 시 숨김) */}
-      <div className="print:hidden sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 bg-white border-b border-gray-200 px-5 py-4 shadow-sm">
-        <h1 className="text-lg font-bold text-slate-800">운수종사자 일상점검표 (1년치)</h1>
-        <div className="flex items-center gap-3 flex-wrap">
+      {/* ── 상단 전체 고정 영역 (인쇄 시 숨김) ── */}
+      <div className="print:hidden sticky top-0 z-20 flex flex-col w-full shadow-md">
 
-          {/* 차량 검색 드롭다운 */}
-          <div className="relative">
-            <div className="flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 bg-white focus-within:border-[#ff6b35]">
-              <Search size={14} className="text-gray-400 flex-shrink-0" />
-              <input
-                type="text"
-                placeholder="차량번호 또는 기사명 검색"
-                value={vehicleSearch}
-                onChange={(e) => {
-                  setVehicleSearch(e.target.value)
-                  setShowDropdown(true)
-                  if (!e.target.value) {
-                    setSelectedVehicle(null)
-                    setDataLoaded(false)
-                  }
-                }}
-                onFocus={() => setShowDropdown(true)}
-                onClick={() => setShowDropdown(true)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                className="w-52 text-sm font-bold text-black outline-none bg-transparent placeholder:font-normal placeholder:text-gray-400"
-              />
-              {selectedVehicle && (
-                <button
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    setSelectedVehicle(null)
-                    setVehicleSearch('')
-                    setDataLoaded(false)
+        {/* 1. 컨트롤 바 */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-5 py-4">
+          <h1 className="text-lg font-bold text-slate-800">운수종사자 일상점검표 (1년치)</h1>
+          <div className="flex items-center gap-3 flex-wrap">
+
+            {/* 차량 검색 드롭다운 */}
+            <div className="relative">
+              <div className="flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 bg-white focus-within:border-[#ff6b35]">
+                <Search size={14} className="text-gray-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="차량번호 또는 기사명 검색"
+                  value={vehicleSearch}
+                  onChange={(e) => {
+                    setVehicleSearch(e.target.value)
                     setShowDropdown(true)
+                    if (!e.target.value) {
+                      setSelectedVehicle(null)
+                      setDataLoaded(false)
+                    }
                   }}
-                  className="ml-1 flex-shrink-0 text-gray-400 hover:text-gray-700 text-base leading-none"
-                  aria-label="차량 선택 초기화"
-                >
-                  ×
-                </button>
+                  onFocus={() => setShowDropdown(true)}
+                  onClick={() => setShowDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+                  className="w-52 text-sm font-bold text-black outline-none bg-transparent placeholder:font-normal placeholder:text-gray-400"
+                />
+                {selectedVehicle && (
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault()
+                      setSelectedVehicle(null)
+                      setVehicleSearch('')
+                      setDataLoaded(false)
+                      setShowDropdown(true)
+                    }}
+                    className="ml-1 flex-shrink-0 text-gray-400 hover:text-gray-700 text-base leading-none"
+                    aria-label="차량 선택 초기화"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              {showDropdown && filteredVehicles.length > 0 && (
+                <ul className="absolute top-full left-0 z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg text-sm">
+                  {filteredVehicles.map((v) => (
+                    <li
+                      key={v.vehicle_number}
+                      onMouseDown={() => handleVehicleSelect(v)}
+                      className="cursor-pointer px-3 py-2 hover:bg-slate-50 border-b border-gray-100 last:border-0"
+                    >
+                      <span className="font-semibold text-slate-800">{v.vehicle_number}</span>
+                      {v.driver_name && (
+                        <span className="ml-2 text-slate-500">{v.driver_name}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
-            {showDropdown && filteredVehicles.length > 0 && (
-              <ul className="absolute top-full left-0 z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg text-sm">
-                {filteredVehicles.map((v) => (
-                  <li
-                    key={v.vehicle_number}
-                    onMouseDown={() => handleVehicleSelect(v)}
-                    className="cursor-pointer px-3 py-2 hover:bg-slate-50 border-b border-gray-100 last:border-0"
-                  >
-                    <span className="font-semibold text-slate-800">{v.vehicle_number}</span>
-                    {v.driver_name && (
-                      <span className="ml-2 text-slate-500">{v.driver_name}</span>
-                    )}
-                  </li>
+
+            {/* 연도 선택 */}
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              연도
+              <select
+                value={year}
+                onChange={(e) => {
+                  setYear(Number(e.target.value))
+                  setDataLoaded(false)
+                }}
+                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-semibold text-black focus:border-[#ff6b35] focus:outline-none bg-white"
+              >
+                {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - i).map((y) => (
+                  <option key={y} value={y}>{y}년</option>
                 ))}
-              </ul>
-            )}
-          </div>
+              </select>
+            </label>
 
-          {/* 연도 선택 */}
-          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-            연도
-            <select
-              value={year}
-              onChange={(e) => {
-                setYear(Number(e.target.value))
-                setDataLoaded(false)
-              }}
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-semibold text-black focus:border-[#ff6b35] focus:outline-none bg-white"
+            {/* 조회 버튼 */}
+            <button
+              onClick={loadYearlyData}
+              disabled={!selectedVehicle || loading}
+              className="flex items-center gap-2 rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - i).map((y) => (
-                <option key={y} value={y}>{y}년</option>
-              ))}
-            </select>
-          </label>
+              {loading ? <Loader size={14} className="animate-spin" /> : null}
+              조회하기
+            </button>
 
-          {/* 조회 버튼 */}
-          <button
-            onClick={loadYearlyData}
-            disabled={!selectedVehicle || loading}
-            className="flex items-center gap-2 rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? <Loader size={14} className="animate-spin" /> : null}
-            조회하기
-          </button>
-
-          {/* 인쇄 버튼 */}
-          <button
-            onClick={() => window.print()}
-            disabled={!dataLoaded}
-            className="flex items-center gap-2 rounded-md bg-[#ff6b35] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e85d2a] active:bg-[#d4521f] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            <Printer size={16} />
-            인쇄하기
-          </button>
+            {/* 인쇄 버튼 */}
+            <button
+              onClick={() => window.print()}
+              disabled={!dataLoaded}
+              className="flex items-center gap-2 rounded-md bg-[#ff6b35] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e85d2a] active:bg-[#d4521f] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Printer size={16} />
+              인쇄하기
+            </button>
+          </div>
         </div>
+
+        {/* 2. 월 선택 탭 (데이터 로드 완료 후 노출) */}
+        {dataLoaded && !loading && (
+          <div className="flex flex-wrap items-center gap-1.5 px-5 py-3 bg-slate-50 border-t border-gray-200">
+            {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
+              <button
+                key={m}
+                onClick={() => setActivePreviewMonth(m)}
+                className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
+                  activePreviewMonth === m
+                    ? 'bg-[#ff6b35] text-white'
+                    : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
+                }`}
+              >
+                {m}월
+              </button>
+            ))}
+            <button
+              onClick={() => setActivePreviewMonth('all')}
+              className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
+                activePreviewMonth === 'all'
+                  ? 'bg-slate-700 text-white'
+                  : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
+              }`}
+            >
+              전체
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 안내 메시지 */}
@@ -577,7 +610,7 @@ export function YearlyReport() {
 
       {/* 12개월 A4 양식 출력 영역 */}
       {dataLoaded && !loading && (
-        <div className="overflow-x-auto py-6 print:py-0 print:overflow-visible">
+        <div className="overflow-x-auto py-8 bg-gray-100 print:bg-transparent print:py-0 print:overflow-visible">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((monthNum) => (
             <div
               key={monthNum}
@@ -601,34 +634,7 @@ export function YearlyReport() {
         </div>
       )}
 
-      {/* 월 선택 탭 (화면 전용, 인쇄 시 숨김) */}
-      {dataLoaded && !loading && (
-        <div className="print:hidden flex flex-wrap items-center gap-1.5 px-5 py-3 mt-6 mb-12 bg-white border-t border-gray-200">
-          {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
-            <button
-              key={m}
-              onClick={() => setActivePreviewMonth(m)}
-              className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
-                activePreviewMonth === m
-                  ? 'bg-[#ff6b35] text-white'
-                  : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
-              }`}
-            >
-              {m}월
-            </button>
-          ))}
-          <button
-            onClick={() => setActivePreviewMonth('all')}
-            className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
-              activePreviewMonth === 'all'
-                ? 'bg-slate-700 text-white'
-                : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
-            }`}
-          >
-            전체
-          </button>
-        </div>
-      )}
+
     </div>
   )
 }
