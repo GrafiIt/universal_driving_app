@@ -5,7 +5,7 @@ import { Printer, Loader, Search } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
 // ────────────────────────────────────────
-// 점검 항목 그룹 정의 (monthly-report와 동일)
+// 점검 항목 그룹 정의 (monthly-report와 100% 동일)
 // ────────────────────────────────────────
 const GROUPS: {
   label: string
@@ -68,12 +68,11 @@ function statusSymbol(status: ItemRow['status']): string {
   return ''
 }
 
-// 월별 그룹화 타입
-// byMonthDay[month][day][item_id] = ItemRow
+// 월별 그룹화 타입: byMonthDay[month][day][item_id] = ItemRow
 type ByMonthDay = Record<number, Record<number, Record<string, ItemRow>>>
 
 // ────────────────────────────────────────
-// 단일 월 A4 양식 컴포넌트
+// 단일 월 A4 양식 컴포넌트 (monthly-report/page.tsx 표 구조 100% 동일)
 // ────────────────────────────────────────
 interface MonthSheetProps {
   year: number
@@ -96,7 +95,9 @@ function MonthSheet({
 }: MonthSheetProps) {
   const yearShort = String(year).slice(2)
   const monthStr = String(monthNum).padStart(2, '0')
+  // 해당 연도·월의 실제 일수 (28~31)
   const daysInMonth = new Date(year, monthNum, 0).getDate()
+  // 1~31 고정 배열
   const days = Array.from({ length: 31 }, (_, i) => i + 1)
 
   return (
@@ -182,9 +183,8 @@ function MonthSheet({
                   {item.label}
                 </td>
                 {days.map((d) => {
-                  const row = byDay[d]?.[item.id]
-                  // 해당 월의 실제 날짜 범위를 벗어난 열은 빈 칸
                   const outOfRange = d > daysInMonth
+                  const row = outOfRange ? undefined : byDay[d]?.[item.id]
                   return (
                     <td
                       key={d}
@@ -209,14 +209,17 @@ function MonthSheet({
               점검자 확인(서명)
             </th>
             {days.map((d) => {
-              const row = byDay[d]?.['s2']
+              const outOfRange = d > daysInMonth
+              const row = outOfRange ? undefined : byDay[d]?.['s2']
               const url = row?.image_urls?.[0]
               return (
                 <td
                   key={d}
-                  className="border border-black p-0 h-[50px] align-middle"
+                  className={`border border-black p-0 h-[50px] align-middle ${
+                    outOfRange ? 'bg-gray-100' : ''
+                  }`}
                 >
-                  {url ? (
+                  {!outOfRange && url ? (
                     <img
                       src={url}
                       alt="서명"
@@ -312,7 +315,7 @@ export function YearlyReport() {
     )
   }, [vehicles, vehicleSearch])
 
-  // 1년 치 데이터 조회
+  // 1년치 데이터 조회
   const loadYearlyData = useCallback(async () => {
     if (!selectedVehicle) return
     setLoading(true)
@@ -348,7 +351,7 @@ export function YearlyReport() {
       }
 
       const newByMonthDay: ByMonthDay = {}
-      // month → { day → note }[]
+      // month → { day, note }[]
       const actionsByMonth: Record<number, { day: number; note: string | null }[]> = {}
 
       if (ids.length > 0) {
@@ -367,6 +370,7 @@ export function YearlyReport() {
           if (!newByMonthDay[month][day]) newByMonthDay[month][day] = {}
           newByMonthDay[month][day][it.item_id] = it
 
+          // s1(불량상태 조치)이 abnormal인 경우만 수집
           if (it.item_id === 's1' && it.status === 'abnormal') {
             if (!actionsByMonth[month]) actionsByMonth[month] = []
             actionsByMonth[month].push({ day, note: it.note })
@@ -374,7 +378,7 @@ export function YearlyReport() {
         }
       }
 
-      // 월별 조치 기록 라인 생성 (최대 7개)
+      // 월별 조치 기록 라인 생성 (최대 7개, 날짜 오름차순)
       const newMonthActionLines: Record<number, string[]> = {}
       for (let m = 1; m <= 12; m++) {
         const acts = (actionsByMonth[m] ?? []).sort((a, b) => a.day - b.day)
@@ -395,7 +399,7 @@ export function YearlyReport() {
 
   const handleVehicleSelect = (v: Vehicle) => {
     setSelectedVehicle(v)
-    setVehicleSearch(`${v.vehicle_number} (${v.driver_name ?? ''})`)
+    setVehicleSearch(`${v.vehicle_number}${v.driver_name ? ` (${v.driver_name})` : ''}`)
     setShowDropdown(false)
     setDataLoaded(false)
   }
@@ -410,7 +414,6 @@ export function YearlyReport() {
             margin: 0 !important;
             padding: 0 !important;
             width: 297mm;
-            height: 210mm;
             overflow: visible !important;
           }
           /* 관리자 사이드바, 헤더, 네비게이션, 인쇄 제어버튼 전체 강제 숨김 */
@@ -418,22 +421,26 @@ export function YearlyReport() {
             display: none !important;
           }
           ::-webkit-scrollbar { display: none; }
-          .print-container {
-            width: 297mm !important;
-            height: 210mm !important;
-            margin: 0 !important;
-            padding: 12mm 15mm !important;
-            box-sizing: border-box !important;
-            box-shadow: none !important;
-            display: flex;
-            flex-direction: column;
-            background-color: white !important;
-          }
           .page-break {
             page-break-after: always !important;
             break-after: page !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+          }
+          /* 마지막 월은 page-break 불필요 */
+          .page-break:last-child {
+            page-break-after: auto !important;
+            break-after: auto !important;
+          }
+          .print-sheet {
+            width: 297mm !important;
+            height: 210mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            box-shadow: none !important;
+            background-color: white !important;
+            overflow: hidden !important;
           }
         }
       `}</style>
@@ -442,6 +449,7 @@ export function YearlyReport() {
       <div className="print:hidden sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 bg-white border-b border-gray-200 px-5 py-4 shadow-sm">
         <h1 className="text-lg font-bold text-slate-800">운수종사자 일상점검표 (1년치)</h1>
         <div className="flex items-center gap-3 flex-wrap">
+
           {/* 차량 검색 드롭다운 */}
           <div className="relative">
             <div className="flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 bg-white focus-within:border-[#ff6b35]">
@@ -554,18 +562,20 @@ export function YearlyReport() {
 
       {/* 12개월 A4 양식 출력 영역 */}
       {dataLoaded && !loading && (
-        <div className="overflow-x-auto py-6 print:py-0">
+        <div className="overflow-x-auto py-6 print:py-0 print:overflow-visible">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((monthNum) => (
-            <div key={monthNum} className="page-break print-container mb-6 print:mb-0">
-              <MonthSheet
-                year={year}
-                monthNum={monthNum}
-                companyName={companyName}
-                vehicleNumber={selectedVehicle?.vehicle_number ?? ''}
-                driverName={selectedVehicle?.driver_name ?? ''}
-                byDay={byMonthDay[monthNum] ?? {}}
-                actionLines={monthActionLines[monthNum] ?? []}
-              />
+            <div key={monthNum} className="page-break mb-6 print:mb-0">
+              <div className="print-sheet">
+                <MonthSheet
+                  year={year}
+                  monthNum={monthNum}
+                  companyName={companyName}
+                  vehicleNumber={selectedVehicle?.vehicle_number ?? ''}
+                  driverName={selectedVehicle?.driver_name ?? ''}
+                  byDay={byMonthDay[monthNum] ?? {}}
+                  actionLines={monthActionLines[monthNum] ?? []}
+                />
+              </div>
             </div>
           ))}
         </div>
