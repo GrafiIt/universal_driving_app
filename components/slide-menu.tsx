@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Smartphone, Settings, LogOut } from 'lucide-react';
+import { X, Smartphone, Settings, LogOut, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
@@ -61,6 +61,11 @@ export function SlideMenu({ isOpen, onClose }: SlideMenuProps) {
     } else {
       alert('관리자만 접근할 수 있습니다.');
     }
+  };
+
+  const handleMonthlyReportClick = () => {
+    router.push('/monthly-report');
+    onClose();
   };
 
   const handleInstallClick = () => {
@@ -128,7 +133,18 @@ export function SlideMenu({ isOpen, onClose }: SlideMenuProps) {
             <span className="font-semibold text-base">1. 관리자 페이지</span>
           </button>
 
-          {/* 2. 휴대폰 설치 */}
+          {/* 2. 운수종사자 일상점검표 확인 */}
+          <button
+            onClick={handleMonthlyReportClick}
+            className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-slate-100 hover:bg-slate-700 active:bg-slate-600 transition-colors text-left"
+          >
+            <div className="w-10 h-10 bg-slate-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <FileText size={20} className="text-slate-200" />
+            </div>
+            <span className="font-semibold text-base">2. 운수종사자 일상점검표 확인</span>
+          </button>
+
+          {/* 3. 휴대폰 설치 */}
           <button
             onClick={handleInstallClick}
             className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-slate-100 hover:bg-slate-700 active:bg-slate-600 transition-colors text-left"
@@ -136,10 +152,10 @@ export function SlideMenu({ isOpen, onClose }: SlideMenuProps) {
             <div className="w-10 h-10 bg-slate-600 rounded-xl flex items-center justify-center flex-shrink-0">
               <Smartphone size={20} className="text-slate-200" />
             </div>
-            <span className="font-semibold text-base">2. 휴대폰 설치</span>
+            <span className="font-semibold text-base">3. 휴대폰 설치</span>
           </button>
 
-          {/* 3. 로그아웃 */}
+          {/* 4. 로그아웃 */}
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
@@ -149,7 +165,7 @@ export function SlideMenu({ isOpen, onClose }: SlideMenuProps) {
               <LogOut size={20} className="text-slate-200" />
             </div>
             <span className="font-semibold text-base">
-              {isLoggingOut ? '로그아웃 중...' : '3. 로그아웃'}
+              {isLoggingOut ? '로그아웃 중...' : '4. 로그아웃'}
             </span>
           </button>
         </nav>
