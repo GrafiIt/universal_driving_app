@@ -451,7 +451,7 @@ export function YearlyReport() {
             width: 297mm !important;
             height: 210mm !important;
             margin: 0 !important;
-            padding: 8mm 10mm !important;
+            padding: 16mm 10mm 4mm 10mm !important; /* 상단 16mm(2배), 오른쪽 10mm, 하단 4mm, 왼쪽 10mm */
             box-sizing: border-box !important;
             box-shadow: none !important;
             background-color: white !important;
@@ -560,35 +560,6 @@ export function YearlyReport() {
         </div>
       </div>
 
-      {/* 월 선택 탭 (화면 전용, 인쇄 시 숨김) */}
-      {dataLoaded && !loading && (
-        <div className="print:hidden flex flex-wrap items-center gap-1.5 px-5 py-3 bg-white border-b border-gray-200">
-          {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
-            <button
-              key={m}
-              onClick={() => setActivePreviewMonth(m)}
-              className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
-                activePreviewMonth === m
-                  ? 'bg-[#ff6b35] text-white'
-                  : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
-              }`}
-            >
-              {m}월
-            </button>
-          ))}
-          <button
-            onClick={() => setActivePreviewMonth('all')}
-            className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
-              activePreviewMonth === 'all'
-                ? 'bg-slate-700 text-white'
-                : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
-            }`}
-          >
-            전체
-          </button>
-        </div>
-      )}
-
       {/* 안내 메시지 */}
       {!dataLoaded && !loading && (
         <div className="print:hidden flex flex-col items-center justify-center gap-3 py-32 text-slate-500">
@@ -627,6 +598,35 @@ export function YearlyReport() {
               />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 월 선택 탭 (화면 전용, 인쇄 시 숨김) */}
+      {dataLoaded && !loading && (
+        <div className="print:hidden flex flex-wrap items-center gap-1.5 px-5 py-3 mt-4 mb-8 bg-white border-t border-gray-200">
+          {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
+            <button
+              key={m}
+              onClick={() => setActivePreviewMonth(m)}
+              className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
+                activePreviewMonth === m
+                  ? 'bg-[#ff6b35] text-white'
+                  : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
+              }`}
+            >
+              {m}월
+            </button>
+          ))}
+          <button
+            onClick={() => setActivePreviewMonth('all')}
+            className={`rounded px-3 py-1 text-xs font-semibold transition-colors ${
+              activePreviewMonth === 'all'
+                ? 'bg-slate-700 text-white'
+                : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
+            }`}
+          >
+            전체
+          </button>
         </div>
       )}
     </div>
