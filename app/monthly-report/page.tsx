@@ -5,48 +5,48 @@ import { Printer, Loader } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
 // ────────────────────────────────────────
-// 점검항목 정의 (양식 열 순서와 동일)
-//  - 외관점검 4 / 상태점검 3 / 기타 4 / 조치여부 1 / 서명 1 = 총 13개 항목열 + 날짜열 = 14열
+// 점검 항목 그룹 정의 (항목=행, 날짜=열 구조)
+// s1은 그리드 행에서 제외하고 조치기록 데이터 용도로만 사용
 // ────────────────────────────────────────
-const GROUPS: { label: string; items: { id: string; label: string }[] }[] = [
+const GROUPS: {
+  label: string
+  verticalLabel: string
+  items: { id: string; label: string }[]
+}[] = [
   {
     label: '외관점검',
+    verticalLabel: '외\n관\n점\n검',
     items: [
-      { id: 'v1', label: '번호판·전면유리·후사경 등 청결상태' },
-      { id: 'v2', label: '후미등·차폭등 등 등화장치 작동상태' },
+      { id: 'v1', label: '번호판, 전면유리, 후사경 등의 청결상태' },
+      { id: 'v2', label: '후미등, 차폭등 등 등화장치 작동상태' },
       { id: 'v3', label: '창닦이기 작동상태' },
-      { id: 'v4', label: '적재함·측면보호대·후부반사판 등 부착·훼손 여부' },
+      {
+        id: 'v4',
+        label:
+          '적재함(보조지지대 포함), 측면 보호대, 후부반사판, 트레일러 연결장치의 부착상태 및 훼손 여부',
+      },
     ],
   },
   {
     label: '상태점검',
+    verticalLabel: '상\n태\n점\n검',
     items: [
-      { id: 'w1', label: '타이어 손상 및 마모(1.6mm이상) 여부' },
-      { id: 'w2', label: '화물·적재함 지지대(판스프링) 고정상태' },
+      { id: 'w1', label: '타이어 손상 및 마모(1.6㎜이상) 여부' },
+      { id: 'w2', label: '화물, 적재함 지지대(판스프링) 등의 고정상태' },
       { id: 'w3', label: '바퀴 너트 등 균열 여부' },
     ],
   },
   {
     label: '기타',
+    verticalLabel: '기\n타',
     items: [
-      { id: 'e1', label: '냉각수·공기압·엔진오일 등 이상 여부' },
+      { id: 'e1', label: '냉각수, 공기압, 엔진오일 등 차량 이상 여부(계기판 확인)' },
       { id: 'e2', label: '좌석안전띠 상태' },
       { id: 'e3', label: '소화기 비치 여부' },
       { id: 'e4', label: '안전삼각대 등 비치 여부' },
     ],
   },
-  {
-    label: '조치여부',
-    items: [{ id: 's1', label: '불량상태 조치(개선) 여부' }],
-  },
-  {
-    label: '서명',
-    items: [{ id: 's2', label: '점검자 확인(서명)' }],
-  },
 ]
-
-// 모든 항목 id 를 평탄화한 열 순서
-const COLUMN_ITEMS = GROUPS.flatMap((g) => g.items)
 
 // 점검 항목 1건 (DB row)
 interface ItemRow {
@@ -91,6 +91,11 @@ export default function MonthlyReportPage() {
     return [y, m]
   }, [selectedMonth])
 
+  // 연도 두 자리 (예: 2026 → "26")
+  const yearShort = String(year).slice(2)
+  // 월 두 자리 (예: 7 → "07")
+  const monthStr = String(monthNum).padStart(2, '0')
+
   // 해당 월의 마지막 일 (28~31)
   const daysInMonth = useMemo(() => new Date(year, monthNum, 0).getDate(), [year, monthNum])
 
@@ -131,7 +136,7 @@ export default function MonthlyReportPage() {
           // 무시
         }
 
-        // 3) 차량번호 조회 (driver_id = user.id 또는 email)
+        // 3) 차량번호 조회
         const orFilters = [`driver_id.eq.${user.id}`]
         if (user.email) orFilters.push(`driver_id.eq.${user.email}`)
 
@@ -155,7 +160,7 @@ export default function MonthlyReportPage() {
           return
         }
 
-        // 4) 한 달 치 점검 마스터 조회 (로컬 월 경계 → ISO 변환)
+        // 4) 한 달 치 점검 마스터 조회
         const startLocal = new Date(year, monthNum - 1, 1, 0, 0, 0)
         const endLocal = new Date(year, monthNum, 1, 0, 0, 0)
 
@@ -171,7 +176,6 @@ export default function MonthlyReportPage() {
         const idToDay = new Map<string, number>()
         const ids: string[] = []
         for (const insp of inspList) {
-          // Timezone 안전: ISO → Date → 로컬 일(day) 추출
           const localDate = new Date(insp.inspected_at as string)
           const day = localDate.getDate()
           idToDay.set(insp.id as string, day)
@@ -194,7 +198,7 @@ export default function MonthlyReportPage() {
             if (!map[day]) map[day] = {}
             map[day][it.item_id] = it
 
-            // 조치여부(s1) 가 '있음'(abnormal) 인 기록 수집
+            // s1(불량상태 조치) 이 'abnormal'(있음)인 경우 조치 기록 수집
             if (it.item_id === 's1' && it.status === 'abnormal') {
               actions.push({ day, note: it.note })
             }
@@ -203,7 +207,8 @@ export default function MonthlyReportPage() {
 
         actions.sort((a, b) => a.day - b.day)
         const lines = actions.map(
-          (a) => `[${monthNum}월 ${a.day}일] ${a.note && a.note.trim() ? a.note : '조치 필요'}`,
+          (a) =>
+            `[${monthNum}월 ${a.day}일] ${a.note && a.note.trim() ? a.note : '조치 필요'}`,
         )
 
         if (!cancelled) {
@@ -223,12 +228,18 @@ export default function MonthlyReportPage() {
     }
   }, [year, monthNum])
 
-  const cellBase = 'border border-black text-center align-middle py-0.5 px-1'
+  // 1~31 고정 날짜 배열
+  const days = Array.from({ length: 31 }, (_, i) => i + 1)
 
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white">
-      {/* @page 인쇄 설정 */}
-      <style>{'@media print { @page { size: A4 landscape; margin: 10mm; } body { background: white; } }'}</style>
+      <style>{`
+        @media print {
+          @page { size: A4 landscape; margin: 6mm; }
+          body { background: white; }
+          .print\\:hidden { display: none !important; }
+        }
+      `}</style>
 
       {/* 상단 컨트롤 (인쇄 시 숨김) */}
       <div className="print:hidden sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 bg-white border-b border-gray-200 px-5 py-4 shadow-sm">
@@ -262,111 +273,163 @@ export default function MonthlyReportPage() {
       ) : (
         <div className="overflow-x-auto py-6 print:py-0">
           {/* A4 가로 양식 */}
-          <div className="w-[297mm] min-h-[210mm] mx-auto bg-white text-black text-[10px] md:text-xs p-4 shadow-lg print:shadow-none print:p-0">
-            {/* 제목 */}
-            <h2 className="text-center text-lg font-bold mb-2">운수종사자 일상점검표</h2>
+          <div className="w-[277mm] mx-auto bg-white text-black p-[6mm] shadow-lg print:shadow-none print:p-0 print:w-full">
 
-            {/* 상단 정보란 */}
-            <table className="w-full border-collapse border border-black mb-1">
+            {/* 제목 */}
+            <p className="text-center text-[13px] font-bold mb-1.5 tracking-widest">
+              운수종사자 일상점검표
+            </p>
+
+            {/* ── 상단 정보란 ── */}
+            <table className="w-full border-collapse border border-black mb-1.5 text-[10px] text-center font-bold">
               <tbody>
                 <tr>
-                  <th className={`${cellBase} bg-gray-100 w-[12%]`}>점검연월</th>
-                  <td className={`${cellBase} w-[21%]`}>
-                    {year}년 {monthNum}월
+                  <td className="border border-black bg-gray-50 py-1 w-[10%]">점검연월</td>
+                  <td className="border border-black py-1 w-[14%]">
+                    20&nbsp;{yearShort}&nbsp;년&nbsp;&nbsp;{monthStr}&nbsp;월
                   </td>
-                  <th className={`${cellBase} bg-gray-100 w-[12%]`}>운송사업자명</th>
-                  <td className={`${cellBase} w-[21%]`}>{companyName || '-'}</td>
-                  <th className={`${cellBase} bg-gray-100 w-[10%]`}>등록번호</th>
-                  <td className={`${cellBase}`}>{vehicleNumber || '-'}</td>
-                  <th className={`${cellBase} bg-gray-100 w-[12%]`}>운수종사자성명</th>
-                  <td className={`${cellBase}`}>{driverName || '-'}</td>
+                  <td className="border border-black bg-gray-50 py-1 w-[12%]">운송사업자명</td>
+                  <td className="border border-black py-1 w-[22%]">{companyName || ''}</td>
+                  <td className="border border-black bg-gray-50 py-1 w-[10%]">차량번호</td>
+                  <td className="border border-black py-1 w-[14%]">{vehicleNumber || ''}</td>
+                  <td className="border border-black bg-gray-50 py-1 w-[10%]">운수종사자명</td>
+                  <td className="border border-black py-1 w-[8%]">{driverName || ''}</td>
                 </tr>
               </tbody>
             </table>
 
-            {/* 범례 */}
-            <p className="text-right text-[9px] md:text-[10px] mb-1">
-              점검결과 (양호 O, 불량 X, 미운행시 &quot;미&quot; 기입)
-            </p>
+            {/* ── 메인 점검표 (항목=행, 날짜=열) ── */}
+            <table className="w-full border-collapse border border-black table-fixed text-center text-[8.5px] leading-tight">
+              <colgroup>
+                {/* 카테고리 열 */}
+                <col style={{ width: '3%' }} />
+                {/* 항목명 열 */}
+                <col style={{ width: '14%' }} />
+                {/* 1~31일 열 (각 동일 너비) */}
+                {days.map((d) => (
+                  <col key={d} style={{ width: `${83 / 31}%` }} />
+                ))}
+              </colgroup>
 
-            {/* 점검표 본문 */}
-            <table className="w-full border-collapse border border-black table-fixed">
               <thead>
-                {/* 1행: 날짜 + 카테고리 그룹 */}
+                {/* 1행: 점검항목 / 점검결과 헤더 */}
                 <tr>
-                  <th className={`${cellBase} bg-gray-100 w-[5%]`} rowSpan={2}>
-                    일자
+                  <th
+                    colSpan={2}
+                    rowSpan={2}
+                    className="border border-black py-1 bg-white font-bold text-[9px]"
+                  >
+                    점검항목
                   </th>
-                  {GROUPS.map((g) => (
-                    <th key={g.label} className={`${cellBase} bg-gray-100`} colSpan={g.items.length}>
-                      {g.label}
-                    </th>
-                  ))}
+                  <th
+                    colSpan={31}
+                    className="border border-black py-0.5 bg-white font-bold text-[9px]"
+                  >
+                    점검결과(양호 O, 불량 ×, 미운행시 &quot;미&quot; 기입)
+                  </th>
                 </tr>
-                {/* 2행: 개별 점검항목 */}
+                {/* 2행: 1~31 날짜 */}
                 <tr>
-                  {COLUMN_ITEMS.map((item) => (
+                  {days.map((d) => (
                     <th
-                      key={item.id}
-                      className={`${cellBase} bg-gray-50 text-[8px] md:text-[9px] leading-tight font-normal`}
+                      key={d}
+                      className="border border-black p-0 py-0.5 font-bold text-[8.5px]"
                     >
-                      {item.label}
+                      {d}
                     </th>
                   ))}
                 </tr>
               </thead>
+
               <tbody>
-                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
-                  const dayData = byDay[day] ?? {}
-                  return (
-                    <tr key={day}>
-                      <td className={`${cellBase} bg-gray-50 font-medium`}>{day}</td>
-                      {COLUMN_ITEMS.map((item) => {
-                        const row = dayData[item.id]
-                        // 서명 열: 이미지가 있으면 렌더링
-                        if (item.id === 's2') {
-                          const url = row?.image_urls?.[0]
-                          return (
-                            <td key={item.id} className={`${cellBase} h-6`}>
-                              {url ? (
-                                <img
-                                  src={url || '/placeholder.svg'}
-                                  alt="서명"
-                                  crossOrigin="anonymous"
-                                  className="h-4 mx-auto object-contain"
-                                />
-                              ) : (
-                                ''
-                              )}
-                            </td>
-                          )
-                        }
+                {GROUPS.map((group) =>
+                  group.items.map((item, itemIdx) => (
+                    <tr key={item.id}>
+                      {/* 카테고리 셀: 첫 번째 항목에만 rowSpan으로 렌더링 */}
+                      {itemIdx === 0 && (
+                        <td
+                          rowSpan={group.items.length}
+                          className="border border-black font-bold text-[8px] leading-[1.6] whitespace-pre-line align-middle p-0"
+                        >
+                          {group.verticalLabel}
+                        </td>
+                      )}
+
+                      {/* 항목명 */}
+                      <td className="border border-black text-left px-1 py-0.5 leading-snug text-[8px] align-middle">
+                        {item.label}
+                      </td>
+
+                      {/* 1~31일 데이터 칸 */}
+                      {days.map((d) => {
+                        const row = byDay[d]?.[item.id]
                         return (
-                          <td key={item.id} className={`${cellBase} h-6 font-medium`}>
+                          <td
+                            key={d}
+                            className="border border-black p-0 h-[18px] align-middle font-medium text-[8.5px]"
+                          >
                             {statusSymbol(row?.status ?? null)}
                           </td>
                         )
                       })}
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                  )),
+                )}
 
-            {/* 하단 불량상태 조치 기록 */}
-            <table className="w-full border-collapse border border-black border-t-0">
-              <tbody>
+                {/* ── 서명 행 ── */}
                 <tr>
-                  <th className={`${cellBase} bg-gray-100 w-[12%] align-top`}>불량상태 조치 기록</th>
-                  <td className="border border-black px-2 py-1 align-top text-left">
-                    {actionLines.length > 0 ? (
-                      <div className="flex flex-col gap-0.5">
+                  <th
+                    colSpan={2}
+                    className="border border-black py-1 font-bold text-[8.5px]"
+                  >
+                    점검자 확인(서명)
+                  </th>
+                  {days.map((d) => {
+                    const row = byDay[d]?.['s2']
+                    const url = row?.image_urls?.[0]
+                    return (
+                      <td
+                        key={d}
+                        className="border border-black p-0 h-[20px] align-middle"
+                      >
+                        {url ? (
+                          <img
+                            src={url}
+                            alt="서명"
+                            crossOrigin="anonymous"
+                            className="h-4 w-full object-contain"
+                          />
+                        ) : null}
+                      </td>
+                    )
+                  })}
+                </tr>
+
+                {/* ── 불량상태 조치 기록 행 ── */}
+                <tr>
+                  <th
+                    colSpan={2}
+                    className="border border-black py-2 font-bold text-[8.5px] align-middle"
+                  >
+                    불량상태 조치 기록
+                  </th>
+                  <td
+                    colSpan={31}
+                    className="border border-black text-left px-2 py-1 align-top h-12 text-[8.5px]"
+                  >
+                    <span className="text-gray-400">
+                      (예시) 00일 창닦이기 불량 - 00일 창닦이기 교체
+                    </span>
+                    {actionLines.length > 0 && (
+                      <>
+                        <br />
                         {actionLines.map((line, idx) => (
-                          <span key={idx}>{line}</span>
+                          <span key={idx}>
+                            {line}
+                            {idx < actionLines.length - 1 && <br />}
+                          </span>
                         ))}
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">(해당 없음)</span>
+                      </>
                     )}
                   </td>
                 </tr>
