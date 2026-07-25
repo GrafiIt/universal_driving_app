@@ -136,20 +136,24 @@ export default function MonthlyReportPage() {
           // 무시
         }
 
-        // 3) 차량번호 조회
+        // 3) 차량번호 + 운전자 이름 조회
         const orFilters = [`driver_id.eq.${user.id}`]
         if (user.email) orFilters.push(`driver_id.eq.${user.email}`)
 
         const { data: vehicle } = await supabase
           .schema('driver-checklist')
           .from('universal_driving_check_vehicles')
-          .select('vehicle_number')
+          .select('vehicle_number, driver_name')
           .or(orFilters.join(','))
           .limit(1)
           .maybeSingle()
 
         const vNum = vehicle?.vehicle_number ?? ''
-        if (!cancelled) setVehicleNumber(vNum)
+        const dName = vehicle?.driver_name ?? name
+        if (!cancelled) {
+          setVehicleNumber(vNum)
+          setDriverName(dName)
+        }
 
         if (!vNum) {
           if (!cancelled) {
@@ -206,7 +210,7 @@ export default function MonthlyReportPage() {
         }
 
         actions.sort((a, b) => a.day - b.day)
-        const lines = actions.map(
+        const lines = actions.slice(0, 3).map(
           (a) =>
             `[${monthNum}월 ${a.day}일] ${a.note && a.note.trim() ? a.note : '조치 필요'}`,
         )
@@ -235,9 +239,11 @@ export default function MonthlyReportPage() {
     <div className="min-h-screen bg-gray-100 print:bg-white">
       <style>{`
         @media print {
-          @page { size: A4 landscape; margin: 6mm; }
-          body { background: white; }
+          @page { size: A4 landscape; margin: 10mm; }
+          body, html { background: white; margin: 0; padding: 0; }
+          header, nav { display: none !important; }
           .print\\:hidden { display: none !important; }
+          ::-webkit-scrollbar { display: none; }
         }
       `}</style>
 
@@ -273,7 +279,7 @@ export default function MonthlyReportPage() {
       ) : (
         <div className="overflow-x-auto py-6 print:py-0">
           {/* A4 가로 양식 */}
-          <div className="w-[277mm] mx-auto bg-white text-black p-[6mm] shadow-lg print:shadow-none print:p-0 print:w-full">
+          <div className="max-w-[277mm] mx-auto bg-white text-black p-[6mm] shadow-lg print:shadow-none print:p-0 print:w-full">
 
             {/* 제목 */}
             <p className="text-center text-[13px] font-bold mb-1.5 tracking-widest">
@@ -366,7 +372,7 @@ export default function MonthlyReportPage() {
                         return (
                           <td
                             key={d}
-                            className="border border-black p-0 h-[18px] align-middle font-medium text-[8.5px]"
+                            className="border border-black p-0 h-[22px] align-middle font-medium text-[8.5px]"
                           >
                             {statusSymbol(row?.status ?? null)}
                           </td>
@@ -390,7 +396,7 @@ export default function MonthlyReportPage() {
                     return (
                       <td
                         key={d}
-                        className="border border-black p-0 h-[20px] align-middle"
+                        className="border border-black p-0 h-[26px] align-middle"
                       >
                         {url ? (
                           <img
@@ -415,22 +421,14 @@ export default function MonthlyReportPage() {
                   </th>
                   <td
                     colSpan={31}
-                    className="border border-black text-left px-2 py-1 align-top h-12 text-[8.5px]"
+                    className="border border-black text-left px-2 py-1 align-top h-[50px] text-[8.5px]"
                   >
-                    <span className="text-gray-400">
-                      (예시) 00일 창닦이기 불량 - 00일 창닦이기 교체
-                    </span>
-                    {actionLines.length > 0 && (
-                      <>
-                        <br />
-                        {actionLines.map((line, idx) => (
-                          <span key={idx}>
-                            {line}
-                            {idx < actionLines.length - 1 && <br />}
-                          </span>
-                        ))}
-                      </>
-                    )}
+                    {actionLines.map((line, idx) => (
+                      <span key={idx}>
+                        {line}
+                        {idx < actionLines.length - 1 && <br />}
+                      </span>
+                    ))}
                   </td>
                 </tr>
               </tbody>
