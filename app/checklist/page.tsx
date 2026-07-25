@@ -26,7 +26,7 @@ export default function ChecklistPage() {
   const [isInitializing, setIsInitializing] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0])
 
-  // ── 글로벌 뒤로가기 이벤트 수신 ──
+  // ── 글로벌 뒤로가기 / 홈 이벤트 수신 ──
   useEffect(() => {
     const handleGlobalBack = () => {
       setStep((prev) => {
@@ -37,8 +37,15 @@ export default function ChecklistPage() {
         return prev
       })
     }
+    const handleGlobalHome = () => {
+      setStep('start')
+    }
     window.addEventListener('global-back', handleGlobalBack)
-    return () => window.removeEventListener('global-back', handleGlobalBack)
+    window.addEventListener('global-home', handleGlobalHome)
+    return () => {
+      window.removeEventListener('global-back', handleGlobalBack)
+      window.removeEventListener('global-home', handleGlobalHome)
+    }
   }, [])
 
   // ── 마운트 시 세션·권한·차량 매칭 검증 ──
