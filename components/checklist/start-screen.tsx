@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { UserCircle, Gauge, Clock, Package, Boxes, Zap, Search, X, Loader, Truck } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { UserCircle, Gauge, Clock, Package, Boxes, Zap, Search, X, Loader, Truck, Calendar } from 'lucide-react'
 import { CATEGORIES, CATEGORY_COUNT, CHECKLIST_ITEMS, type InspectionResult } from '@/lib/checklist-data'
 import { createClient } from '@/utils/supabase/client'
 
@@ -10,6 +10,8 @@ interface StartScreenProps {
   driverName: string
   vehicleNumber: string
   userLevel: number | null
+  selectedDate: string
+  onDateChange: (date: string) => void
   onVehicleChange: (name: string, num: string) => void
   onStart: () => void
   onEdit: (inspectionId: string) => void
@@ -22,16 +24,22 @@ interface VehicleRow {
   driver_name: string | null
 }
 
-function getInspectionDateTime(): string {
-  const now = new Date()
+function getTodayString(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
+function getMinDateString(): string {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - 3)
+  return d.toISOString().split('T')[0]
+}
+
+function formatDateDisplay(dateStr: string): string {
   const days = ['일', '월', '화', '수', '목', '금', '토']
-  const yyyy = now.getFullYear()
-  const mm = String(now.getMonth() + 1).padStart(2, '0')
-  const dd = String(now.getDate()).padStart(2, '0')
-  const day = days[now.getDay()]
-  const hh = String(now.getHours()).padStart(2, '0')
-  const min = String(now.getMinutes()).padStart(2, '0')
-  return `${yyyy}.${mm}.${dd} (${day}) ${hh}:${min}`
+  const [yyyy, mm, dd] = dateStr.split('-')
+  const dateObj = new Date(`${yyyy}-${mm}-${dd}`)
+  const day = days[dateObj.getDay()]
+  return `${yyyy}.${mm}.${dd} (${day})`
 }
 
 function getCategoryIcon(key: string) {
@@ -50,41 +58,45 @@ function getCategoryBg(key: string) {
   return 'bg-gray-50'
 }
 
-export default function StartScreen({ results, driverName, vehicleNumber, userLevel, onVehicleChange, onStart, onEdit, onSkipToday, isLoadingEdit }: StartScreenProps) {
+export default function StartScreen({ results, driverName, vehicleNumber, userLevel, selectedDate, onDateChange, onVehicleChange, onStart, onEdit, onSkipToday, isLoadingEdit }: StartScreenProps) {
   const [inspectionState, setInspectionState] = useState<'none' | 'partial' | 'completed'>('none')
   const [fetchedItemStatuses, setFetchedItemStatuses] = useState<Record<string, string>>({})
-  const [todayInspectionId, setTodayInspectionId] = useState<string | null>(null)
+  const [dateInspectionId, setDateInspectionId] = useState<string | null>(null)
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false)
 
-  const isAdmin = userLevel === 1 || userLevel === 2
+  const dateInputRef = useRef<HTMLInputElement>(null)
 
-  // 오늘 점검 상태 조회
+  const isAdmin = userLevel === 1 || userLevel === 2
+  const todayStr = getTodayString()
+  const minDate = getMinDateString()
+  const isToday = selectedDate === todayStr
+
+  // 선택 날짜 기준 점검 상태 조회
   useEffect(() => {
-    const checkTodayInspection = async () => {
-      // 이전 차량의 잔상이 남지 않도록 먼저 초기화
+    const checkDateInspection = async () => {
+      // 이전 차량/날짜의 잔상이 남지 않도록 먼저 초기화
       setInspectionState('none')
       setFetchedItemStatuses({})
-      setTodayInspectionId(null)
+      setDateInspectionId(null)
 
       try {
         const supabase = createClient()
-        const now = new Date()
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
-        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+        const dateStart = new Date(`${selectedDate}T00:00:00`)
+        const dateEnd = new Date(`${selectedDate}T23:59:59`)
 
         const { data, error } = await supabase
           .schema('driver-checklist')
           .from('universal_driving_check_inspections')
           .select('id, universal_driving_check_inspection_items(item_id, status)')
           .eq('vehicle_number', vehicleNumber)
-          .gte('inspected_at', todayStart.toISOString())
-          .lte('inspected_at', todayEnd.toISOString())
+          .gte('inspected_at', dateStart.toISOString())
+          .lte('inspected_at', dateEnd.toISOString())
           .order('inspected_at', { ascending: false })
           .limit(1)
 
         if (!error && data && data.length > 0) {
           const inspection = data[0]
-          setTodayInspectionId(inspection.id)
+          setDateInspectionId(inspection.id)
 
           const items = (inspection.universal_driving_check_inspection_items ?? []) as { item_id: string; status: string }[]
 
@@ -104,30 +116,33 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
         } else {
           setInspectionState('none')
           setFetchedItemStatuses({})
-          setTodayInspectionId(null)
+          setDateInspectionId(null)
         }
       } catch {
         // 조회 실패 시 기본값(미완료)으로 유지
         setInspectionState('none')
         setFetchedItemStatuses({})
-        setTodayInspectionId(null)
+        setDateInspectionId(null)
       }
     }
 
-    checkTodayInspection()
-  }, [vehicleNumber])
+    checkDateInspection()
+  }, [vehicleNumber, selectedDate])
 
   // 점검 시작 / 이어서 / 수정 분기 핸들러
   const handleMainButtonClick = () => {
     if (inspectionState === 'completed') {
-      if (!todayInspectionId) return
-      const confirmed = window.confirm('오늘 점검을 마무리했는데 수정하시겠습니까?')
+      if (!dateInspectionId) return
+      const confirmMsg = isToday
+        ? '오늘 점검을 마무리했는데 수정하시겠습니까?'
+        : `${formatDateDisplay(selectedDate)} 점검을 수정하시겠습니까?`
+      const confirmed = window.confirm(confirmMsg)
       if (confirmed) {
-        onEdit(todayInspectionId)
+        onEdit(dateInspectionId)
       }
     } else if (inspectionState === 'partial') {
-      if (!todayInspectionId) return
-      onEdit(todayInspectionId)
+      if (!dateInspectionId) return
+      onEdit(dateInspectionId)
     } else {
       onStart()
     }
@@ -152,6 +167,17 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
     return categoryItems.filter(
       (i) => results[i.id]?.status === 'normal' || results[i.id]?.status === 'abnormal'
     ).length
+  }
+
+  // 메인 버튼 텍스트 결정
+  const getMainButtonText = () => {
+    if (isLoadingEdit) return '불러오는 중...'
+    if (inspectionState === 'completed') {
+      if (!isToday) return '해당 일자 점검 완료 (수정하기)'
+      return '오늘 점검 완료 (수정하기)'
+    }
+    if (inspectionState === 'partial') return '이어서 점검하기'
+    return '점검 시작'
   }
 
   return (
@@ -191,7 +217,32 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
               <Clock size={18} className="text-[#1a3a52]" />
             </div>
             <span className="text-sm text-gray-600 flex-1 font-medium">점검일시</span>
-            <span className="text-sm font-bold text-[#1a3a52]">{getInspectionDateTime()}</span>
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-bold ${isToday ? 'text-[#1a3a52]' : 'text-[#ff6b35]'}`}>
+                {formatDateDisplay(selectedDate)}
+                {!isToday && <span className="ml-1 text-xs font-normal text-[#ff6b35]">(소급)</span>}
+              </span>
+              <button
+                onClick={() => dateInputRef.current?.showPicker()}
+                aria-label="점검일 선택"
+                className="w-8 h-8 flex items-center justify-center rounded-none bg-orange-100 text-[#ff6b35] hover:bg-orange-200 active:bg-orange-300 transition-colors flex-shrink-0"
+              >
+                <Calendar size={16} />
+              </button>
+              <input
+                ref={dateInputRef}
+                type="date"
+                min={minDate}
+                max={todayStr}
+                value={selectedDate}
+                onChange={(e) => {
+                  if (e.target.value) onDateChange(e.target.value)
+                }}
+                className="sr-only"
+                aria-hidden="true"
+                tabIndex={-1}
+              />
+            </div>
           </div>
         </div>
 
@@ -241,7 +292,7 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
         </div>
       </main>
 
-      {/* 하단 버튼 - 콘텐츠 바로 아래 또는 화면 하단에 고정 */}
+      {/* 하단 버튼 */}
       <div className="sticky bottom-0 mt-auto px-4 pb-6 pt-3 bg-white border-t border-gray-200">
         <div className="flex gap-2">
           <button
@@ -257,16 +308,10 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
                 : 'bg-[#ff6b35] hover:bg-[#e55a24] active:bg-[#cc4910]'
               }`}
           >
-            {isLoadingEdit
-              ? '불러오는 중...'
-              : inspectionState === 'completed'
-              ? '오늘 점검 완료 (수정하기)'
-              : inspectionState === 'partial'
-              ? '이어서 점검하기'
-              : '점검 시작'}
+            {getMainButtonText()}
           </button>
           <button
-            onClick={() => onSkipToday(inspectionState !== 'none' ? todayInspectionId : null)}
+            onClick={() => onSkipToday(inspectionState !== 'none' ? dateInspectionId : null)}
             disabled={isLoadingEdit}
             className={`h-14 px-4 text-sm font-bold rounded-none transition-colors border whitespace-nowrap
               ${isLoadingEdit

@@ -24,6 +24,7 @@ export default function ChecklistPage() {
   const [vehicleNumber, setVehicleNumber] = useState('')
   const [userLevel, setUserLevel] = useState<number | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)
+  const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0])
 
   // ── 마운트 시 세션·권한·차량 매칭 검증 ──
   useEffect(() => {
@@ -266,13 +267,16 @@ export default function ChecklistPage() {
           throw new Error('기존 점검 항목 삭제 실패: ' + deleteError.message)
         }
       } else {
+        const currentTime = new Date().toTimeString().split(' ')[0] // HH:mm:ss
+        const targetInspectedAt = new Date(`${selectedDate}T${currentTime}`).toISOString()
+
         const { data: inspection, error: inspectionError } = await supabase
           .schema('driver-checklist')
           .from('universal_driving_check_inspections')
           .insert({
             driver_name: driverName,
             vehicle_number: vehicleNumber,
-            inspected_at: new Date().toISOString(),
+            inspected_at: targetInspectedAt,
           })
           .select('id')
           .single()
@@ -378,6 +382,8 @@ export default function ChecklistPage() {
         driverName={driverName}
         vehicleNumber={vehicleNumber}
         userLevel={userLevel}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
         onVehicleChange={handleVehicleChange}
         onStart={handleStart}
         onEdit={handleEdit}
