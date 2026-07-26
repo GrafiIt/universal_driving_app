@@ -15,9 +15,8 @@ interface ContactInfo {
 
 interface MemberRow {
   id: string
-  full_name: string | null
-  phone: string | null
-  email: string | null
+  driver_name: string | null
+  vehicle_number: string | null
   created_at: string
 }
 
@@ -48,32 +47,23 @@ export function EmergencyContacts() {
   // ── 초기 데이터 로드 ──
   useEffect(() => {
     const init = async () => {
-      const supabase = createClient()
-
-      // 현재 세션 및 company_id 취득
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
-
-      const userId = session.user.id
-
-      // company_id 조회 (universal_driving_check_users 또는 메타데이터 기반)
+      // 1) /api/v1/users/me 로 companyCode 취득
       let cid: string | null = null
       try {
-        const { data: userRow } = await supabase
-          .schema('driver-checklist')
-          .from('universal_driving_check_users')
-          .select('company_id')
-          .eq('id', userId)
-          .single()
-        cid = userRow?.company_id ?? null
+        const res = await fetch('/api/v1/users/me')
+        if (res.ok) {
+          const json = await res.json()
+          cid = json.companyCode ?? json.company_code ?? null
+        }
       } catch {
-        // 테이블 구조 차이 대비: app_metadata 폴백
-        cid = session.user.app_metadata?.company_id ?? null
+        cid = null
       }
 
       setCompanyId(cid)
 
-      // 관리자 연락처 조회
+      const supabase = createClient()
+
+      // 2) 관리자 연락처 조회
       if (cid) {
         const { data: contactData } = await supabase
           .schema('driver-checklist')
@@ -91,14 +81,14 @@ export function EmergencyContacts() {
         }
       }
 
-      // 회원 목록 조회
+      // 3) 차량/기사 목록 조회 (universal_driving_check_vehicles)
       setIsLoadingMembers(true)
       setMembersError(null)
       try {
         const query = supabase
           .schema('driver-checklist')
-          .from('universal_driving_check_users')
-          .select('id, full_name, phone, email, created_at')
+          .from('universal_driving_check_vehicles')
+          .select('id, driver_name, vehicle_number, created_at')
           .order('created_at', { ascending: false })
 
         if (cid) {
@@ -110,7 +100,7 @@ export function EmergencyContacts() {
         setMembers(memberData ?? [])
         setFilteredMembers(memberData ?? [])
       } catch (err) {
-        setMembersError(err instanceof Error ? err.message : '회원 목록 조회 중 오류가 발생했습니다.')
+        setMembersError(err instanceof Error ? err.message : '목록 조회 중 오류가 발생했습니다.')
       } finally {
         setIsLoadingMembers(false)
       }
@@ -127,7 +117,8 @@ export function EmergencyContacts() {
     } else {
       setFilteredMembers(
         members.filter((m) =>
-          (m.full_name ?? '').toLowerCase().includes(q)
+          (m.driver_name ?? '').toLowerCase().includes(q) ||
+          (m.vehicle_number ?? '').toLowerCase().includes(q)
         )
       )
     }
@@ -315,8 +306,8 @@ export function EmergencyContacts() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="이름으로 검색"
-                className="h-9 w-56 rounded-lg border border-slate-200 bg-white pl-8 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-colors"
+                placeholder="성명 또는 차량번호 검색"
+                className="h-9 w-64 rounded-lg border border-slate-200 bg-white pl-8 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-colors"
               />
             </div>
           </div>
@@ -330,13 +321,10 @@ export function EmergencyContacts() {
                     No.
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 whitespace-nowrap">
-                    성명
+                    운수종사자명(성명)
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 whitespace-nowrap">
-                    전화번호
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 whitespace-nowrap">
-                    이메일
+                    차량번호
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-bold text-slate-600 whitespace-nowrap w-28">
                     등록일
@@ -346,22 +334,22 @@ export function EmergencyContacts() {
               <tbody>
                 {isLoadingMembers && (
                   <tr>
-                    <td colSpan={5} className="py-16 text-center text-slate-400">
+                    <td colSpan={4} className="py-16 text-center text-slate-400">
                       데이터를 불러오는 중입니다...
                     </td>
                   </tr>
                 )}
                 {membersError && !isLoadingMembers && (
                   <tr>
-                    <td colSpan={5} className="py-16 text-center text-red-500 text-xs">
+                    <td colSpan={4} className="py-16 text-center text-red-500 text-xs">
                       오류: {membersError}
                     </td>
                   </tr>
                 )}
                 {!isLoadingMembers && !membersError && pagedMembers.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-16 text-center text-slate-400">
-                      {searchQuery ? '검색 결과가 없습니다.' : '등록된 회원이 없습니다.'}
+                    <td colSpan={4} className="py-16 text-center text-slate-400">
+                      {searchQuery ? '검색 결과가 없습니다.' : '등록된 차량/기사가 없습니다.'}
                     </td>
                   </tr>
                 )}
@@ -376,31 +364,10 @@ export function EmergencyContacts() {
                         {(currentPage - 1) * PAGE_SIZE + idx + 1}
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-800 whitespace-nowrap">
-                        {member.full_name ?? '-'}
+                        {member.driver_name ?? '-'}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
-                        {member.phone ? (
-                          <a
-                            href={`tel:${member.phone}`}
-                            className="text-slate-700 hover:text-orange-500 transition-colors"
-                          >
-                            {member.phone}
-                          </a>
-                        ) : (
-                          <span className="text-slate-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-slate-700">
-                        {member.email ? (
-                          <a
-                            href={`mailto:${member.email}`}
-                            className="text-slate-700 hover:text-orange-500 transition-colors break-all"
-                          >
-                            {member.email}
-                          </a>
-                        ) : (
-                          <span className="text-slate-400">-</span>
-                        )}
+                        {member.vehicle_number ?? <span className="text-slate-400">-</span>}
                       </td>
                       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">
                         {formatDate(member.created_at)}

@@ -18,33 +18,26 @@ export default function UnassignedPage() {
   useEffect(() => {
     const fetchContact = async () => {
       try {
-        const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) return
-
-        const userId = session.user.id
-
-        // company_id 조회
-        let companyId: string | null = null
+        // /api/v1/users/me 에서 companyCode 취득
+        let companyCode: string | null = null
         try {
-          const { data: userRow } = await supabase
-            .schema('driver-checklist')
-            .from('universal_driving_check_users')
-            .select('company_id')
-            .eq('id', userId)
-            .single()
-          companyId = userRow?.company_id ?? null
+          const res = await fetch('/api/v1/users/me')
+          if (res.ok) {
+            const json = await res.json()
+            companyCode = json.companyCode ?? json.company_code ?? null
+          }
         } catch {
-          companyId = session.user.app_metadata?.company_id ?? null
+          companyCode = null
         }
 
-        if (!companyId) return
+        if (!companyCode) return
 
+        const supabase = createClient()
         const { data } = await supabase
           .schema('driver-checklist')
           .from('universal_driving_check_company_contacts')
           .select('manager_name, manager_email, manager_phone')
-          .eq('company_id', companyId)
+          .eq('company_id', companyCode)
           .single()
 
         if (data) {
