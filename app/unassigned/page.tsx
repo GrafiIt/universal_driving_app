@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, User, Mail, Phone, RotateCw, Home, LogOut } from 'lucide-react'
+import { AlertCircle, User, Mail, Phone, Home, LogOut } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
 const FALLBACK_CONTACT = {
@@ -59,7 +59,7 @@ export default function UnassignedPage() {
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    window.location.reload()
+    window.location.href = '/'
   }
 
   return (
@@ -126,11 +126,11 @@ export default function UnassignedPage() {
       {/* 하단 버튼 */}
       <div className="sticky bottom-0 mt-auto px-4 pb-6 pt-3 bg-white border-t border-gray-200 flex flex-col gap-2.5">
         <button
-          onClick={() => window.location.reload()}
-          className="w-full h-14 bg-[#ff6b35] hover:bg-[#e55a24] active:bg-[#cc4910] text-white text-lg font-bold rounded-none transition-colors flex items-center justify-center gap-2"
+          onClick={() => router.push('/')}
+          className="w-full h-12 bg-white border border-gray-300 text-[#1a3a52] text-base font-bold rounded-none transition-colors hover:bg-gray-50 flex items-center justify-center gap-2"
         >
-          <RotateCw size={20} />
-          다시 시도
+          <Home size={18} />
+          홈으로 돌아가기
         </button>
         <button
           onClick={handleLogout}
@@ -138,13 +138,6 @@ export default function UnassignedPage() {
         >
           <LogOut size={18} />
           로그아웃
-        </button>
-        <button
-          onClick={() => router.push('/')}
-          className="w-full h-12 bg-white border border-gray-300 text-[#1a3a52] text-base font-bold rounded-none transition-colors hover:bg-gray-50 flex items-center justify-center gap-2"
-        >
-          <Home size={18} />
-          홈으로 돌아가기
         </button>
       </div>
     </div>
