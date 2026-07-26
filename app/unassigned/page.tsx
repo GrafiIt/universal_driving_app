@@ -1,11 +1,66 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, User, Mail, Phone, RotateCw, Home, LogOut } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
+const FALLBACK_CONTACT = {
+  manager_name: '관리자',
+  manager_email: 'admin@example.com',
+  manager_phone: '010-0000-0000',
+}
+
 export default function UnassignedPage() {
   const router = useRouter()
+  const [contact, setContact] = useState(FALLBACK_CONTACT)
+
+  useEffect(() => {
+    const fetchContact = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
+
+        const userId = session.user.id
+
+        // company_id 조회
+        let companyId: string | null = null
+        try {
+          const { data: userRow } = await supabase
+            .schema('driver-checklist')
+            .from('universal_driving_check_users')
+            .select('company_id')
+            .eq('id', userId)
+            .single()
+          companyId = userRow?.company_id ?? null
+        } catch {
+          companyId = session.user.app_metadata?.company_id ?? null
+        }
+
+        if (!companyId) return
+
+        const { data } = await supabase
+          .schema('driver-checklist')
+          .from('universal_driving_check_company_contacts')
+          .select('manager_name, manager_email, manager_phone')
+          .eq('company_id', companyId)
+          .single()
+
+        if (data) {
+          setContact({
+            manager_name: data.manager_name || FALLBACK_CONTACT.manager_name,
+            manager_email: data.manager_email || FALLBACK_CONTACT.manager_email,
+            manager_phone: data.manager_phone || FALLBACK_CONTACT.manager_phone,
+          })
+        }
+      } catch {
+        // fallback 유지
+      }
+    }
+
+    fetchContact()
+  }, [])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -44,12 +99,12 @@ export default function UnassignedPage() {
             </div>
             <span className="text-sm text-gray-600 flex-1 font-medium">담당자</span>
             <span className="text-sm font-bold text-[#1a3a52] text-right">
-              관리자
+              {contact.manager_name}
             </span>
           </div>
 
           <a
-            href="mailto:admin@example.com"
+            href={`mailto:${contact.manager_email}`}
             className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 hover:bg-gray-50 transition-colors"
           >
             <div className="w-9 h-9 rounded-none bg-orange-100 flex items-center justify-center flex-shrink-0">
@@ -57,19 +112,19 @@ export default function UnassignedPage() {
             </div>
             <span className="text-sm text-gray-600 flex-1 font-medium">E-mail</span>
             <span className="text-sm font-bold text-[#1a3a52] text-right break-all">
-              admin@example.com
+              {contact.manager_email}
             </span>
           </a>
 
           <a
-            href="tel:010-0000-0000"
+            href={`tel:${contact.manager_phone}`}
             className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors"
           >
             <div className="w-9 h-9 rounded-none bg-orange-100 flex items-center justify-center flex-shrink-0">
               <Phone size={18} className="text-[#1a3a52]" />
             </div>
             <span className="text-sm text-gray-600 flex-1 font-medium">연락처</span>
-            <span className="text-sm font-bold text-[#1a3a52] text-right">010-0000-0000</span>
+            <span className="text-sm font-bold text-[#1a3a52] text-right">{contact.manager_phone}</span>
           </a>
         </div>
       </main>

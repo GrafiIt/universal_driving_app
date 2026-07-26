@@ -6,6 +6,7 @@ import { AdminSidebar, type AdminMenuKey } from '@/components/admin/admin-sideba
 import { InspectionTable } from '@/components/admin/inspection-table'
 import { VehicleManagement } from '@/components/admin/vehicle-management'
 import { YearlyReport } from '@/components/admin/yearly-report'
+import { EmergencyContacts } from '@/components/admin/emergency-contacts'
 import { createClient } from '@/utils/supabase/client'
 
 export default function AdminPage() {
@@ -88,6 +89,7 @@ export default function AdminPage() {
               title="권한 관리"
             />
           )}
+          {activeMenu === 'emergency-contacts' && <EmergencyContacts />}
         </div>
       </main>
     </div>
