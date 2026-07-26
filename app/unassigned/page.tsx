@@ -18,16 +18,17 @@ export default function UnassignedPage() {
   useEffect(() => {
     const fetchContact = async () => {
       try {
-        // /api/v1/users/me 에서 companyCode 취득
+        // /api/v1/users/me 에서 company 식별자 취득
         let companyCode: string | null = null
         try {
           const res = await fetch('/api/v1/users/me')
           if (res.ok) {
             const json = await res.json()
-            companyCode = json.companyCode ?? json.company_code ?? null
+            // companyCode가 없으면 companyName을 회사 식별자로 사용
+            companyCode = json.companyCode || json.company_code || json.companyName || 'default_company'
           }
         } catch {
-          companyCode = null
+          companyCode = 'default_company'
         }
 
         if (!companyCode) return
