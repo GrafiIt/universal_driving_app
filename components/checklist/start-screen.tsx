@@ -199,15 +199,13 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
             </div>
             <span className="text-sm text-gray-600 flex-1 font-medium">차량번호</span>
             <span className="text-sm font-bold text-[#1a3a52]">{vehicleNumber}</span>
-            {isAdmin && (
-              <button
-                onClick={() => setIsVehicleModalOpen(true)}
-                aria-label="차량 검색 및 변경"
-                className="ml-2 w-8 h-8 flex items-center justify-center rounded-none bg-orange-100 text-[#ff6b35] hover:bg-orange-200 active:bg-orange-300 transition-colors flex-shrink-0"
-              >
-                <Search size={16} />
-              </button>
-            )}
+            <button
+              onClick={() => setIsVehicleModalOpen(true)}
+              aria-label="차량 검색 및 변경"
+              className="ml-2 w-8 h-8 flex items-center justify-center rounded-none bg-orange-100 text-[#ff6b35] hover:bg-orange-200 active:bg-orange-300 transition-colors flex-shrink-0"
+            >
+              <Search size={16} />
+            </button>
           </div>
           {/* 점검일시 */}
           <div className="flex items-center gap-3 px-5 py-4">
@@ -318,9 +316,11 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
         </div>
       </div>
 
-      {/* 차량 검색 모달 (관리자 대리 점검) */}
+      {/* 차량 검색 모달 */}
       {isVehicleModalOpen && (
         <VehicleSearchModal
+          isAdmin={isAdmin}
+          currentDriverName={driverName}
           onClose={() => setIsVehicleModalOpen(false)}
           onSelect={(name, num) => {
             onVehicleChange(name, num)
@@ -334,11 +334,13 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
 
 // ── 차량 검색 모달 ──
 interface VehicleSearchModalProps {
+  isAdmin: boolean
+  currentDriverName: string
   onClose: () => void
   onSelect: (name: string, num: string) => void
 }
 
-function VehicleSearchModal({ onClose, onSelect }: VehicleSearchModalProps) {
+function VehicleSearchModal({ isAdmin, currentDriverName, onClose, onSelect }: VehicleSearchModalProps) {
   const [vehicles, setVehicles] = useState<VehicleRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -349,11 +351,18 @@ function VehicleSearchModal({ onClose, onSelect }: VehicleSearchModalProps) {
     const fetchVehicles = async () => {
       try {
         const supabase = createClient()
-        const { data, error } = await supabase
+
+        let queryBuilder = supabase
           .schema('driver-checklist')
           .from('universal_driving_check_vehicles')
           .select('vehicle_number, driver_name')
           .order('vehicle_number', { ascending: true })
+
+        if (!isAdmin) {
+          queryBuilder = queryBuilder.eq('driver_name', currentDriverName)
+        }
+
+        const { data, error } = await queryBuilder
 
         if (!cancelled) {
           if (!error && data) {
@@ -371,7 +380,7 @@ function VehicleSearchModal({ onClose, onSelect }: VehicleSearchModalProps) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isAdmin, currentDriverName])
 
   const normalizedQuery = query.trim().toLowerCase()
   const filtered = normalizedQuery
