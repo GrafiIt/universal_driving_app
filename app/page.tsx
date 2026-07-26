@@ -54,13 +54,13 @@ export default function LandingPage() {
         .from('universal_driving_check_vehicles')
         .select('id, vehicle_number')
         .or(`driver_id.eq.${session.user.id},driver_id.eq.${session.user.email}`)
-        .maybeSingle()
+        .limit(1)
 
       if (error) {
         console.error('[DEBUG] 차량 조회 오류:', error)
       }
 
-      if (!data) {
+      if (!data || data.length === 0) {
         router.push('/unassigned')
       } else {
         router.push('/checklist')
