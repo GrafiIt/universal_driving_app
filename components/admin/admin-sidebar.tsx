@@ -1,8 +1,8 @@
 'use client'
 
-import { Car, ClipboardCheck, FileText, PanelLeftClose, PanelLeftOpen, Shield, type LucideIcon } from 'lucide-react'
+import { Car, ClipboardCheck, FileText, PanelLeftClose, PanelLeftOpen, PhoneCall, Shield, type LucideIcon } from 'lucide-react'
 
-export type AdminMenuKey = 'checklist' | 'vehicles' | 'yearly-report' | 'permissions'
+export type AdminMenuKey = 'checklist' | 'vehicles' | 'yearly-report' | 'permissions' | 'emergency-contacts'
 
 interface AdminMenuItem {
   key: AdminMenuKey
@@ -16,6 +16,7 @@ const MENU_ITEMS: AdminMenuItem[] = [
   { key: 'vehicles', label: '차량 및 기사 관리', icon: Car },
   { key: 'yearly-report', label: '운수종사자 일상점검표', icon: FileText },
   { key: 'permissions', label: '권한 관리', icon: Shield },
+  { key: 'emergency-contacts', label: '비상 연락처', icon: PhoneCall },
 ]
 
 interface AdminSidebarProps {
