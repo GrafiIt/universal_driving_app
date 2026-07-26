@@ -47,16 +47,17 @@ export function EmergencyContacts() {
   // ── 초기 데이터 로드 ──
   useEffect(() => {
     const init = async () => {
-      // 1) /api/v1/users/me 로 companyCode 취득
+      // 1) /api/v1/users/me 로 company 식별자 취득
       let cid: string | null = null
       try {
         const res = await fetch('/api/v1/users/me')
         if (res.ok) {
           const json = await res.json()
-          cid = json.companyCode ?? json.company_code ?? null
+          // companyCode가 없으면 companyName을 회사 식별자로 사용
+          cid = json.companyCode || json.company_code || json.companyName || 'default_company'
         }
       } catch {
-        cid = null
+        cid = 'default_company'
       }
 
       setCompanyId(cid)
@@ -85,17 +86,11 @@ export function EmergencyContacts() {
       setIsLoadingMembers(true)
       setMembersError(null)
       try {
-        const query = supabase
+        const { data: memberData, error: memberError } = await supabase
           .schema('driver-checklist')
           .from('universal_driving_check_vehicles')
           .select('id, driver_name, vehicle_number, created_at')
           .order('created_at', { ascending: false })
-
-        if (cid) {
-          query.eq('company_id', cid)
-        }
-
-        const { data: memberData, error: memberError } = await query
         if (memberError) throw new Error(memberError.message)
         setMembers(memberData ?? [])
         setFilteredMembers(memberData ?? [])
