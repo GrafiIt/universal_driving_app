@@ -122,12 +122,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "")
-    const host = request.headers.get("host") ?? request.nextUrl.host
-    const currentUrl = `${proto}://${host}${pathname}${request.nextUrl.search}`
-
     const loginUrl = new URL(LOGIN_URL)
-    loginUrl.searchParams.set("next", currentUrl)
+    loginUrl.searchParams.set("next", encodeURIComponent(request.url))
     return NextResponse.redirect(loginUrl)
   }
 
@@ -148,20 +144,15 @@ export async function middleware(request: NextRequest) {
   const isExpired = expiresAtRaw ? new Date(expiresAtRaw).getTime() < Date.now() : false
 
   if (!permission || !isActive || isExpired) {
-    console.log("[Middleware] 케이스 B: 권한 차단 →", {
-      pathname,
-      permissionExists: !!permission,
-      isActive,
-      isExpired,
-      verifyData: JSON.stringify(verifyData),
-    })
-    // API 요청이면 구독 관리 페이지로 redirect 하지 않고 JSON 401 반환
+    // API 요청이면 HTML 로그인 페이지 대신 JSON 401 반환
     if (isApiRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    // next 파라미터를 절대로 붙이지 않는다.
-    // next 를 붙이면 payment 사이트가 다시 이쪽으로 튕겨내어 무한 루프가 발생한다.
-    return NextResponse.redirect(SUBSCRIPTION_URL)
+    // 케이스 B: 인증됨 + SaaS 구독 권한 없음/만료
+    // → 케이스 A와 동일하게 결제 허브 로그인 페이지로 강제 리다이렉트
+    const loginUrl = new URL(LOGIN_URL)
+    loginUrl.searchParams.set("next", encodeURIComponent(request.url))
+    return NextResponse.redirect(loginUrl)
   }
 
   // ── 케이스 C: 인증됨, SaaS 권한도 있음 → 정상 통과 ───────
