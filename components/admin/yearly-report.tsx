@@ -268,6 +268,7 @@ export function YearlyReport() {
   const [showDropdown, setShowDropdown] = useState(false)
   const [year, setYear] = useState<number>(new Date().getFullYear())
   const [companyName, setCompanyName] = useState('')
+  const [companyCode, setCompanyCode] = useState('default_company')
   const [loading, setLoading] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
   const [activePreviewMonth, setActivePreviewMonth] = useState<number | 'all'>(new Date().getMonth() + 1)
@@ -282,22 +283,26 @@ export function YearlyReport() {
     const init = async () => {
       const supabase = createClient()
 
-      // 회사명
+      // 회사명 + companyCode
+      let fetchedCompanyCode = 'default_company'
       try {
         const res = await fetch('/api/v1/users/me')
         if (res.ok) {
           const json = await res.json()
           setCompanyName(json.companyName ?? '')
+          fetchedCompanyCode = json.companyCode ?? json.company_code ?? 'default_company'
+          setCompanyCode(fetchedCompanyCode)
         }
       } catch {
         // 무시
       }
 
-      // 전체 차량 목록
+      // 해당 회사의 차량 목록
       const { data } = await supabase
         .schema('driver-checklist')
         .from('universal_driving_check_vehicles')
         .select('vehicle_number, driver_name')
+        .eq('company_code', fetchedCompanyCode)
         .order('vehicle_number', { ascending: true })
 
       setVehicles((data as Vehicle[]) ?? [])
@@ -329,11 +334,12 @@ export function YearlyReport() {
       const startISO = `${year}-01-01T00:00:00`
       const endISO = `${year}-12-31T23:59:59`
 
-      // 1) 해당 차량·연도의 점검 마스터 전체 조회
+      // 1) 해당 회사·차량·연도의 점검 마스터 전체 조회
       const { data: inspections } = await supabase
         .schema('driver-checklist')
         .from('universal_driving_check_inspections')
         .select('id, inspected_at')
+        .eq('company_code', companyCode)
         .eq('vehicle_number', vNum)
         .gte('inspected_at', startISO)
         .lte('inspected_at', endISO)
@@ -396,7 +402,7 @@ export function YearlyReport() {
     } finally {
       setLoading(false)
     }
-  }, [selectedVehicle, year])
+  }, [selectedVehicle, year, companyCode])
 
   const handleVehicleSelect = (v: Vehicle) => {
     setSelectedVehicle(v)

@@ -26,15 +26,17 @@ export default function LandingPage() {
         return
       }
 
-      // 2. 유저 등급 및 역할 확인 (미들웨어 주입 헤더 API 호출)
+      // 2. 유저 등급·역할·회사코드 확인 (미들웨어 주입 헤더 API 호출)
       let userLevel: number | null = null
       let userRole: string | null = null
+      let companyCode = 'default_company'
       try {
         const res = await fetch('/api/v1/users/me')
         if (res.ok) {
           const json = await res.json()
           userLevel = json.userLevel ? Number(json.userLevel) : null
           userRole = json.userRole ?? null
+          companyCode = json.companyCode ?? json.company_code ?? 'default_company'
         }
       } catch (e) {
         console.error('[DEBUG] 유저 등급/역할 조회 실패:', e)
@@ -43,7 +45,6 @@ export default function LandingPage() {
       // 3. 관리자(admin 역할 또는 1·2등급) 예외 통과 로직 - 차량 배정 무관하게 체크리스트 진입
       const isManager = userRole === 'admin' || userLevel === 1 || userLevel === 2
       if (isManager) {
-        console.log('[DEBUG] 관리자/운영자 계정 확인 -> /checklist 진입')
         router.push('/checklist')
         return
       }
@@ -53,6 +54,7 @@ export default function LandingPage() {
         .schema('driver-checklist')
         .from('universal_driving_check_vehicles')
         .select('id, vehicle_number')
+        .eq('company_code', companyCode)
         .or(`driver_id.eq.${session.user.id},driver_id.eq.${session.user.email}`)
         .limit(1)
 

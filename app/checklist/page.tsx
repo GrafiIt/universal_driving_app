@@ -23,6 +23,7 @@ export default function ChecklistPage() {
   const [driverName, setDriverName] = useState('')
   const [vehicleNumber, setVehicleNumber] = useState('')
   const [userLevel, setUserLevel] = useState<number | null>(null)
+  const [companyCode, setCompanyCode] = useState('default_company')
   const [isInitializing, setIsInitializing] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0])
 
@@ -66,21 +67,26 @@ export default function ChecklistPage() {
           return
         }
 
-        // 2) 사용자 등급 및 역할 조회
+        // 2) 사용자 등급·역할·회사코드 조회
         let userLevel: number | null = null
         let userRole: string | null = null
+        let fetchedCompanyCode = 'default_company'
         try {
           const res = await fetch('/api/v1/users/me')
           if (res.ok) {
             const json = await res.json()
             userLevel = json.userLevel ? Number(json.userLevel) : null
             userRole = json.userRole ?? null
+            fetchedCompanyCode = json.companyCode ?? json.company_code ?? 'default_company'
           }
         } catch {
           // 조회 실패는 일반 사용자로 간주
         }
 
-        if (!cancelled) setUserLevel(userLevel)
+        if (!cancelled) {
+          setUserLevel(userLevel)
+          setCompanyCode(fetchedCompanyCode)
+        }
 
         // 3) 차량 매칭 조회 (driver_id 가 유저 id 또는 이메일과 일치)
         const orFilters = [`driver_id.eq.${user.id}`]
@@ -90,6 +96,7 @@ export default function ChecklistPage() {
           .schema('driver-checklist')
           .from('universal_driving_check_vehicles')
           .select('driver_name, vehicle_number')
+          .eq('company_code', fetchedCompanyCode)
           .or(orFilters.join(','))
           .limit(1)
           .maybeSingle()
@@ -296,6 +303,7 @@ export default function ChecklistPage() {
           .schema('driver-checklist')
           .from('universal_driving_check_inspections')
           .insert({
+            company_code: companyCode,
             driver_name: driverName,
             vehicle_number: vehicleNumber,
             inspected_at: targetInspectedAt,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import { RefreshCw, Plus, Pencil, Trash2, X } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
@@ -20,12 +20,13 @@ export interface VehicleRow {
 // ─────────────────────────────────────────
 // Supabase fetcher
 // ─────────────────────────────────────────
-async function fetchVehicles(): Promise<VehicleRow[]> {
+async function fetchVehicles(companyCode: string): Promise<VehicleRow[]> {
   const supabase = createClient()
   const { data, error } = await supabase
     .schema('driver-checklist')
     .from('universal_driving_check_vehicles')
     .select('id, vehicle_number, driver_id, driver_name, created_at')
+    .eq('company_code', companyCode)
     .order('created_at', { ascending: true })
 
   if (error) throw new Error(error.message)
@@ -36,9 +37,27 @@ async function fetchVehicles(): Promise<VehicleRow[]> {
 // 메인 컴포넌트
 // ─────────────────────────────────────────
 export function VehicleManagement() {
+  const [companyCode, setCompanyCode] = useState('default_company')
+  const [companyCodeReady, setCompanyCodeReady] = useState(false)
+
+  // companyCode 초기 로드
+  useEffect(() => {
+    fetch('/api/v1/users/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json) {
+          setCompanyCode(json.companyCode ?? json.company_code ?? 'default_company')
+        }
+        setCompanyCodeReady(true)
+      })
+      .catch(() => setCompanyCodeReady(true))
+  }, [])
+
+  const swrKey = companyCodeReady ? `admin-vehicles/${companyCode}` : null
+
   const { data, error, isLoading, mutate, isValidating } = useSWR(
-    'admin-vehicles',
-    fetchVehicles,
+    swrKey,
+    () => fetchVehicles(companyCode),
   )
 
   // 차량 추가 모달
@@ -68,7 +87,7 @@ export function VehicleManagement() {
       const { error: insertError } = await supabase
         .schema('driver-checklist')
         .from('universal_driving_check_vehicles')
-        .insert({ vehicle_number: trimmed })
+        .insert({ vehicle_number: trimmed, company_code: companyCode })
 
       if (insertError) throw new Error(insertError.message)
 
