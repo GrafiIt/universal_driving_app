@@ -188,7 +188,7 @@ function MonthSheet({
                   return (
                     <td
                       key={d}
-                      className={`border border-black p-0 h-[40px] align-middle font-medium text-[8.5px] ${
+                      className={`border border-black p-0 h-[32px] align-middle font-medium text-[8.5px] ${
                         outOfRange ? 'bg-gray-100' : ''
                       }`}
                     >
@@ -204,7 +204,7 @@ function MonthSheet({
           <tr>
             <th
               colSpan={2}
-              className="border border-black h-[52px] font-bold text-[8.5px]"
+              className="border border-black h-[40px] font-bold text-[8.5px]"
             >
               점검자 확인(서명)
             </th>
@@ -215,7 +215,7 @@ function MonthSheet({
               return (
                 <td
                   key={d}
-                  className={`border border-black p-0 h-[52px] align-middle ${
+                  className={`border border-black p-0 h-[40px] align-middle ${
                     outOfRange ? 'bg-gray-100' : ''
                   }`}
                 >
@@ -224,7 +224,7 @@ function MonthSheet({
                       src={url}
                       alt="서명"
                       crossOrigin="anonymous"
-                      className="h-8 w-full object-contain"
+                      className="h-6 w-full object-contain"
                     />
                   ) : null}
                 </td>
@@ -236,13 +236,13 @@ function MonthSheet({
           <tr>
             <th
               colSpan={2}
-              className="border border-black h-[130px] font-bold text-[8.5px] align-middle"
+              className="border border-black h-[85px] font-bold text-[8.5px] align-middle"
             >
               불량상태 조치 기록
             </th>
             <td
               colSpan={31}
-              className="border border-black text-left px-2 py-1 align-top h-[130px] text-[8.5px]"
+              className="border border-black text-left px-2 py-1 align-top h-[85px] text-[8.5px]"
             >
               {actionLines.map((line, idx) => (
                 <span key={idx}>
@@ -451,7 +451,7 @@ export function YearlyReport() {
             width: 297mm !important;
             height: 210mm !important;
             margin: 0 !important;
-            padding: 22mm 12mm 6mm 12mm !important; /* 상단 22mm(편철용), 우측 12mm, 하단 6mm, 좌측 12mm */
+            padding: 8mm 10mm !important; /* 상/하 8mm, 좌/우 10mm로 상단 여백 축소 */
             box-sizing: border-box !important;
             box-shadow: none !important;
             background-color: white !important;
