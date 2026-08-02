@@ -82,10 +82,23 @@ export default function StartScreen({ results, driverName, vehicleNumber, userLe
         const dateStart = new Date(`${selectedDate}T00:00:00`)
         const dateEnd = new Date(`${selectedDate}T23:59:59`)
 
+        // companyCode 취득
+        let companyCode = 'default_company'
+        try {
+          const res = await fetch('/api/v1/users/me')
+          if (res.ok) {
+            const json = await res.json()
+            companyCode = json.companyCode ?? json.company_code ?? 'default_company'
+          }
+        } catch {
+          // 무시
+        }
+
         const { data, error } = await supabase
           .schema('driver-checklist')
           .from('universal_driving_check_inspections')
           .select('id, universal_driving_check_inspection_items(item_id, status)')
+          .eq('company_code', companyCode)
           .eq('vehicle_number', vehicleNumber)
           .gte('inspected_at', dateStart.toISOString())
           .lte('inspected_at', dateEnd.toISOString())
@@ -352,10 +365,23 @@ function VehicleSearchModal({ isAdmin, currentDriverName, onClose, onSelect }: V
       try {
         const supabase = createClient()
 
+        // companyCode 취득
+        let companyCode = 'default_company'
+        try {
+          const res = await fetch('/api/v1/users/me')
+          if (res.ok) {
+            const json = await res.json()
+            companyCode = json.companyCode ?? json.company_code ?? 'default_company'
+          }
+        } catch {
+          // 무시
+        }
+
         let queryBuilder = supabase
           .schema('driver-checklist')
           .from('universal_driving_check_vehicles')
           .select('vehicle_number, driver_name')
+          .eq('company_code', companyCode)
           .order('vehicle_number', { ascending: true })
 
         if (!isAdmin) {
@@ -397,7 +423,7 @@ function VehicleSearchModal({ isAdmin, currentDriverName, onClose, onSelect }: V
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="차량 검색"
+      aria-label="차��� 검색"
     >
       <div
         className="w-full max-w-md bg-white rounded-none border border-gray-200 shadow-xl flex flex-col max-h-[80vh]"

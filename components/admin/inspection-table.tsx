@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import useSWR from 'swr'
 import { RefreshCw, ImageIcon, Search, Pencil, MessageSquare, Trash2, Download } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
@@ -50,6 +50,7 @@ async function fetchInspections(
   fromDate: string,
   toDate: string,
   keyword: string,
+  companyCode: string,
 ): Promise<InspectionRow[]> {
   const supabase = createClient()
   // toDate는 당일 23:59:59까지 포함하기 위해 다음날 00:00:00 미만으로 처리
@@ -63,6 +64,7 @@ async function fetchInspections(
     .select(
       'id, driver_name, vehicle_number, inspected_at, admin_note, universal_driving_check_inspection_items(item_id, status, note, image_urls)',
     )
+    .eq('company_code', companyCode)
     .gte('inspected_at', fromDate)
     .lt('inspected_at', toDateExclusive)
 
@@ -131,12 +133,29 @@ export function InspectionTable() {
   const [editRow, setEditRow] = useState<InspectionRow | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  // SWR key에 날짜/키워드를 포함시켜 값 변경 시 자동 refetch
-  const swrKey = `admin-inspections/${appliedFrom}/${appliedTo}/${appliedKeyword}`
+  const [companyCode, setCompanyCode] = useState('default_company')
+  const [companyCodeReady, setCompanyCodeReady] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/v1/users/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json) {
+          setCompanyCode(json.companyCode ?? json.company_code ?? 'default_company')
+        }
+        setCompanyCodeReady(true)
+      })
+      .catch(() => setCompanyCodeReady(true))
+  }, [])
+
+  // SWR key에 날짜/키워드/companyCode를 포함시켜 값 변경 시 자동 refetch
+  const swrKey = companyCodeReady
+    ? `admin-inspections/${companyCode}/${appliedFrom}/${appliedTo}/${appliedKeyword}`
+    : null
 
   const fetcher = useCallback(
-    () => fetchInspections(appliedFrom, appliedTo, appliedKeyword),
-    [appliedFrom, appliedTo, appliedKeyword],
+    () => fetchInspections(appliedFrom, appliedTo, appliedKeyword, companyCode),
+    [appliedFrom, appliedTo, appliedKeyword, companyCode],
   )
 
   const { data, error, isLoading, mutate, isValidating } = useSWR(swrKey, fetcher)

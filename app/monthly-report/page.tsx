@@ -125,12 +125,14 @@ export default function MonthlyReportPage() {
           ''
         if (!cancelled) setDriverName(name)
 
-        // 2) 회사명 조회
+        // 2) 회사명 + companyCode 조회
+        let companyCode = 'default_company'
         try {
           const res = await fetch('/api/v1/users/me')
           if (res.ok) {
             const json = await res.json()
             if (!cancelled) setCompanyName(json.companyName ?? '')
+            companyCode = json.companyCode ?? json.company_code ?? 'default_company'
           }
         } catch {
           // 무시
@@ -144,6 +146,7 @@ export default function MonthlyReportPage() {
           .schema('driver-checklist')
           .from('universal_driving_check_vehicles')
           .select('vehicle_number, driver_name')
+          .eq('company_code', companyCode)
           .or(orFilters.join(','))
           .limit(1)
           .maybeSingle()
@@ -172,6 +175,7 @@ export default function MonthlyReportPage() {
           .schema('driver-checklist')
           .from('universal_driving_check_inspections')
           .select('id, inspected_at')
+          .eq('company_code', companyCode)
           .eq('vehicle_number', vNum)
           .gte('inspected_at', startLocal.toISOString())
           .lt('inspected_at', endLocal.toISOString())
