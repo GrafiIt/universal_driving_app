@@ -142,7 +142,8 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
   const [note, setNote] = useState(result.note ?? '')
   const [images, setImages] = useState<CompressedImage[]>(result.images ?? [])
   const [isCompressing, setIsCompressing] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   // 모달 렌더링 시 배경 스크롤 잠금
   useEffect(() => {
@@ -166,7 +167,7 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
         setImages((prev) => [...prev, ...compressed])
       } finally {
         setIsCompressing(false)
-        if (fileInputRef.current) fileInputRef.current.value = ''
+        e.currentTarget.value = ''
       }
     },
     [images.length]
@@ -237,25 +238,45 @@ function AbnormalModal({ itemLabel, result, onSave, onCancel }: AbnormalModalPro
             ))}
 
             {images.length < 2 && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isCompressing}
-                className="w-24 h-24 rounded-none border-2 border-dashed border-gray-400 flex flex-col items-center justify-center gap-1 hover:bg-orange-50 transition-colors disabled:opacity-50 flex-shrink-0"
-              >
-                <ImagePlus size={20} className="text-gray-600" />
-                <span className="text-xs text-gray-600">
-                  {isCompressing ? '압축 중...' : '사진 추가'}
-                </span>
-              </button>
+              <div className="flex h-24 min-w-0 flex-1 gap-2">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={isCompressing}
+                  className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-none border-2 border-dashed border-orange-300 bg-orange-50 text-orange-700 transition-colors hover:bg-orange-100 disabled:opacity-50"
+                >
+                  <Camera size={20} />
+                  <span className="text-xs font-semibold">
+                    {isCompressing ? '압축 중...' : '사진 촬영'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  disabled={isCompressing}
+                  className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-none border-2 border-dashed border-slate-300 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50"
+                >
+                  <ImagePlus size={20} />
+                  <span className="text-xs font-semibold">앨범 선택</span>
+                </button>
+              </div>
             )}
           </div>
 
           <input
-            ref={fileInputRef}
+            ref={cameraInputRef}
             type="file"
             accept="image/*"
             multiple
             capture="environment"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            multiple
             onChange={handleFileChange}
             className="hidden"
           />
@@ -491,7 +512,8 @@ interface PhotoAttachModalProps {
 function PhotoAttachModal({ itemLabel, result, onSave, onCancel, isOptional }: PhotoAttachModalProps) {
   const [images, setImages] = useState<CompressedImage[]>(result.images ?? [])
   const [isCompressing, setIsCompressing] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   // 모달 렌더링 시 배경 스크롤 잠금
   useEffect(() => {
@@ -515,7 +537,7 @@ function PhotoAttachModal({ itemLabel, result, onSave, onCancel, isOptional }: P
         setImages((prev) => [...prev, ...compressed])
       } finally {
         setIsCompressing(false)
-        if (fileInputRef.current) fileInputRef.current.value = ''
+        e.currentTarget.value = ''
       }
     },
     [images.length]
@@ -582,25 +604,45 @@ function PhotoAttachModal({ itemLabel, result, onSave, onCancel, isOptional }: P
             ))}
 
             {images.length < 2 && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isCompressing}
-                className="w-24 h-24 rounded-none border-2 border-dashed border-gray-400 flex flex-col items-center justify-center gap-1 hover:bg-slate-50 transition-colors disabled:opacity-50 flex-shrink-0"
-              >
-                <Camera size={20} className="text-gray-600" />
-                <span className="text-xs text-gray-600">
-                  {isCompressing ? '압축 중...' : '사진 추가'}
-                </span>
-              </button>
+              <div className="flex h-24 min-w-0 flex-1 gap-2">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={isCompressing}
+                  className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-none border-2 border-dashed border-orange-300 bg-orange-50 text-orange-700 transition-colors hover:bg-orange-100 disabled:opacity-50"
+                >
+                  <Camera size={20} />
+                  <span className="text-xs font-semibold">
+                    {isCompressing ? '압축 중...' : '사진 촬영'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  disabled={isCompressing}
+                  className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-none border-2 border-dashed border-slate-300 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50"
+                >
+                  <ImagePlus size={20} />
+                  <span className="text-xs font-semibold">앨범 선택</span>
+                </button>
+              </div>
             )}
           </div>
 
           <input
-            ref={fileInputRef}
+            ref={cameraInputRef}
             type="file"
             accept="image/*"
             multiple
             capture="environment"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            multiple
             onChange={handleFileChange}
             className="hidden"
           />
